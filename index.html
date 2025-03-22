@@ -57,13 +57,10 @@
       position: relative;
     }
     th select {
-      position: absolute;
-      right: 0.5rem;
-      top: 50%;
-      transform: translateY(-50%);
+      width: 100%;
+      padding: 0.25rem;
       border: 1px solid #ccc;
       background: #fff;
-      padding: 0.25rem;
     }
     tr:hover { background: #f2f2f2; }
     a {
@@ -71,16 +68,32 @@
       text-decoration: none;
     }
     a:hover { text-decoration: underline; }
+    /* Company sidebar styles */
+    .sidebar h3 {
+      margin-top: 0;
+    }
+    .sidebar input {
+      width: 100%;
+      padding: 0.4rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
     .companies span {
       cursor: pointer;
-      display: block;
-      margin-bottom: 0.5rem;
-      padding: 0.2rem 0.5rem;
+      display: inline-block;
+      margin: 0.25rem;
+      padding: 0.4rem 0.8rem;
       background: #e0e0e0;
-      border-radius: 4px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
     .companies span:hover {
       background: #d0d0d0;
+    }
+    .companies span.selected {
+      background: #2979ff;
+      color: white;
     }
     .companies span.clear {
       font-weight: bold;
@@ -112,15 +125,13 @@
             <th>Star</th>
             <th>Title</th>
             <th>
-              Topic
               <select id="topicFilter">
-                <option value="">All</option>
+                <option value="">Topic</option>
               </select>
             </th>
             <th>
-              Difficulty
               <select id="difficultyFilter">
-                <option value="">All</option>
+                <option value="">Difficulty</option>
               </select>
             </th>
           </tr>
@@ -133,8 +144,9 @@
     <!-- Sidebar for Company Filters -->
     <div class="sidebar">
       <h3>Companies</h3>
+      <input type="text" id="companySearch" placeholder="Search companies...">
       <div class="companies" id="companiesSection">
-        <!-- Company names with counts will appear here -->
+        <!-- Company buttons with counts will appear here -->
       </div>
     </div>
   </div>

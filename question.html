@@ -24,6 +24,25 @@
     .metadata div { margin-bottom: 0.2rem; }
     details { margin: 1rem 0; }
     summary { cursor: pointer; font-weight: bold; color: #007BFF; }
+    /* Styles for answer submission */
+    .answer-submit input[type="text"] {
+      padding: 0.4rem;
+      margin-right: 0.5rem;
+      width: 70%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .answer-submit button {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      background: #2979ff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .answer-submit button:hover {
+      background: #1e6fd9;
+    }
   </style>
 </head>
 <body>
@@ -64,7 +83,7 @@
       // Title
       document.getElementById("questionTitle").textContent = q.title;
 
-      // Metadata
+      // Metadata including tags
       const metaDiv = document.getElementById("metadata");
       metaDiv.innerHTML = `
         <div><strong>Topic:</strong> ${q.topic}</div>
@@ -72,6 +91,7 @@
         <div><strong>Companies:</strong> ${q.companies.join(", ") || "None"}</div>
         <div><strong>URL:</strong> <a href="${q.url}" target="_blank">${q.url}</a></div>
         <div><strong>Last Edited:</strong> ${q.lastEditedAt} by ${q.lastEditedBy}</div>
+        <div><strong>Tags:</strong> ${q.tags ? q.tags.join(", ") : "None"}</div>
       `;
 
       // Task
@@ -79,8 +99,6 @@
 
       // Extra (Hint, Solution, Answer)
       const extraDiv = document.getElementById("extraContent");
-      // We'll just place them in the same order: Hint -> Solution -> Answer
-      // They are already in <details> format from your snippet
       let extraHTML = "";
       if (q.hintHTML) extraHTML += q.hintHTML;
       if (q.solutionHTML) extraHTML += q.solutionHTML;
@@ -91,6 +109,58 @@
       if (window.MathJax) {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }
+      
+      // Append answer submission field
+      addAnswerSubmission(q);
+    }
+
+    function addAnswerSubmission(q) {
+      // Create container for submission
+      const submissionDiv = document.createElement("div");
+      submissionDiv.className = "answer-submit";
+      submissionDiv.style.marginTop = "1rem";
+      
+      // Create input field
+      const inputField = document.createElement("input");
+      inputField.type = "text";
+      inputField.placeholder = "Enter your answer";
+      
+      // Create submit button
+      const submitBtn = document.createElement("button");
+      submitBtn.textContent = "Submit";
+      
+      // Create result notification
+      const resultDiv = document.createElement("div");
+      resultDiv.style.marginTop = "0.5rem";
+      resultDiv.style.fontWeight = "bold";
+      
+      submissionDiv.appendChild(inputField);
+      submissionDiv.appendChild(submitBtn);
+      submissionDiv.appendChild(resultDiv);
+      
+      // Append the submissionDiv after extraContent
+      document.getElementById("extraContent").appendChild(submissionDiv);
+      
+      // Extract the correct answer from answerHTML.
+      // We assume the correct answer is inside the first <li> element.
+      let correctAnswer = "";
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = q.answerHTML;
+      const li = tempDiv.querySelector("li");
+      if (li) {
+        correctAnswer = li.textContent.trim();
+      }
+      
+      submitBtn.addEventListener("click", () => {
+        const userAnswer = inputField.value.trim();
+        if (userAnswer === correctAnswer) {
+          resultDiv.textContent = "Correct";
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.textContent = "False";
+          resultDiv.style.color = "red";
+        }
+      });
     }
   </script>
 </body>

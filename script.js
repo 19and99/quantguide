@@ -1,6 +1,8 @@
 // Global variables and DOM references
 let questionsData = [];
 let solvedQuestions = {};
+let selectedCompany = null;  // to track the currently selected company
+
 const tableBody = document.getElementById("questionsTableBody");
 const searchInput = document.getElementById("searchInput");
 const topicFilter = document.getElementById("topicFilter");
@@ -15,7 +17,7 @@ function loadSolvedQuestions() {
   } else {
     solvedQuestions = {};
   }
-  loadQuestionsData(); // Continue by loading questions data
+  loadQuestionsData();
 }
 
 // Save solved questions data to localStorage
@@ -44,12 +46,16 @@ function populateDropdowns() {
     topics.add(q.topic);
     difficulties.add(q.difficulty);
   });
+  
+  // Populate topicFilter select – default option already present ("Topic")
   topics.forEach(topic => {
     const option = document.createElement("option");
     option.value = topic;
     option.textContent = topic;
     topicFilter.appendChild(option);
   });
+  
+  // Populate difficultyFilter select – default option already present ("Difficulty")
   difficulties.forEach(diff => {
     const option = document.createElement("option");
     option.value = diff;
@@ -58,7 +64,7 @@ function populateDropdowns() {
   });
 }
 
-// Render companies section with clickable names and counts
+// Render companies section with clickable names and counts, including a search filter
 function renderCompanies() {
   const companyCounts = {};
   questionsData.forEach(q => {
@@ -66,26 +72,44 @@ function renderCompanies() {
       companyCounts[comp] = (companyCounts[comp] || 0) + 1;
     });
   });
+  
+  // Get the search text for companies (if any)
+  const companySearchInput = document.getElementById("companySearch");
+  const searchText = companySearchInput ? companySearchInput.value.toLowerCase() : "";
+  
   companiesSection.innerHTML = "";
   Object.keys(companyCounts).forEach(comp => {
+    if (searchText && !comp.toLowerCase().includes(searchText)) return;
+    
     const span = document.createElement("span");
     span.textContent = `${comp} (${companyCounts[comp]})`;
+    
+    if (selectedCompany === comp) {
+      span.classList.add("selected");
+    }
+    
     span.addEventListener("click", () => {
-      const filtered = questionsData.filter(q => q.companies.includes(comp));
-      searchInput.value = "";
-      topicFilter.value = "";
-      difficultyFilter.value = "";
-      renderTable(filtered);
+      if (selectedCompany === comp) {
+        selectedCompany = null;
+        renderTable(questionsData);
+      } else {
+        selectedCompany = comp;
+        const filtered = questionsData.filter(q => q.companies.includes(comp));
+        renderTable(filtered);
+      }
+      renderCompanies();
     });
     companiesSection.appendChild(span);
   });
-
+  
   // Clear filter option
   const clearSpan = document.createElement("span");
   clearSpan.textContent = "Clear Company Filter";
   clearSpan.classList.add("clear");
   clearSpan.addEventListener("click", () => {
+    selectedCompany = null;
     renderTable(questionsData);
+    renderCompanies();
   });
   companiesSection.appendChild(clearSpan);
 }
@@ -96,10 +120,10 @@ function renderTable(questions) {
   questions.forEach(q => {
     const row = document.createElement("tr");
 
-    // Create star cell with solved state loaded from localStorage.
+    // Create star cell (using localStorage for solved state)
     const starCell = document.createElement("td");
     const starBtn = document.createElement("span");
-    starBtn.innerHTML = solvedQuestions[q.id] ? "&#9733;" : "&#9734;"; // filled vs outline star
+    starBtn.innerHTML = solvedQuestions[q.id] ? "&#9733;" : "&#9734;";
     starBtn.classList.add("star");
     if (!solvedQuestions[q.id]) {
       starBtn.classList.add("unsolved");
@@ -112,11 +136,11 @@ function renderTable(questions) {
     });
     starCell.appendChild(starBtn);
 
-    // Title cell with link.
+    // Title cell with link
     const titleCell = document.createElement("td");
     titleCell.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
 
-    // Topic and Difficulty cells.
+    // Topic and Difficulty cells
     const topicCell = document.createElement("td");
     topicCell.textContent = q.topic;
     const diffCell = document.createElement("td");
@@ -134,9 +158,10 @@ function renderTable(questions) {
 // Filter questions based on search input and dropdown filters
 function filterQuestions() {
   const searchText = searchInput.value.toLowerCase();
-  const selectedTopic = topicFilter.value;
-  const selectedDiff = difficultyFilter.value;
-  const filtered = questionsData.filter(q => {
+  const selectedTopic = topicFilter.value ? topicFilter.value : null;
+  const selectedDiff = difficultyFilter.value ? difficultyFilter.value : null;
+  
+  let filtered = questionsData.filter(q => {
     const matchesSearch =
       q.title.toLowerCase().includes(searchText) ||
       q.topic.toLowerCase().includes(searchText) ||
@@ -145,6 +170,12 @@ function filterQuestions() {
     const matchesDiff = selectedDiff ? q.difficulty === selectedDiff : true;
     return matchesSearch && matchesTopic && matchesDiff;
   });
+  
+  // If a company filter is active, further filter the questions
+  if (selectedCompany) {
+    filtered = filtered.filter(q => q.companies.includes(selectedCompany));
+  }
+  
   renderTable(filtered);
 }
 
@@ -152,6 +183,12 @@ function filterQuestions() {
 searchInput.addEventListener("input", filterQuestions);
 topicFilter.addEventListener("change", filterQuestions);
 difficultyFilter.addEventListener("change", filterQuestions);
+
+// Event listener for the company search input
+const companySearchInput = document.getElementById("companySearch");
+if (companySearchInput) {
+  companySearchInput.addEventListener("input", renderCompanies);
+}
 
 // Load solved questions from localStorage on page load
 loadSolvedQuestions();
