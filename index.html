@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QuantGuide - All Questions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: #fafafa;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      width: 90%;
+      max-width: 1200px;
+      margin: 1rem auto;
+    }
+    /* Main content (centered) */
+    .main-content {
+      flex: 2;
+      margin-right: 1rem;
+    }
+    /* Sidebar for company filters */
+    .sidebar {
+      flex: 1;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      margin-left: 1rem;
+      height: fit-content;
+    }
+    h1 { text-align: center; margin-bottom: 1rem; }
+    .search-bar {
+      margin-bottom: 1rem;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #ddd;
+      vertical-align: middle;
+    }
+    th {
+      background: #f9f9f9;
+      text-align: left;
+      position: relative;
+    }
+    th select {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 0.25rem;
+    }
+    tr:hover { background: #f2f2f2; }
+    a {
+      color: #2979ff;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .companies span {
+      cursor: pointer;
+      display: block;
+      margin-bottom: 0.5rem;
+      padding: 0.2rem 0.5rem;
+      background: #e0e0e0;
+      border-radius: 4px;
+    }
+    .companies span:hover {
+      background: #d0d0d0;
+    }
+    .companies span.clear {
+      font-weight: bold;
+      background: #ffd;
+    }
+    .star {
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: gold;
+    }
+    .unsolved {
+      color: lightgray;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Main content area -->
+    <div class="main-content">
+      <h1>QuantGuide Questions</h1>
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search questions by title/topic/difficulty...">
+      </div>
+      <!-- Questions Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Star</th>
+            <th>Title</th>
+            <th>
+              Topic
+              <select id="topicFilter">
+                <option value="">All</option>
+              </select>
+            </th>
+            <th>
+              Difficulty
+              <select id="difficultyFilter">
+                <option value="">All</option>
+              </select>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="questionsTableBody">
+          <!-- Populated by script.js -->
+        </tbody>
+      </table>
+    </div>
+    <!-- Sidebar for Company Filters -->
+    <div class="sidebar">
+      <h3>Companies</h3>
+      <div class="companies" id="companiesSection">
+        <!-- Company names with counts will appear here -->
+      </div>
+    </div>
+  </div>
+  <!-- Load external JS script -->
+  <script src="script.js"></script>
+</body>
+</html>

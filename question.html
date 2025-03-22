@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QuantGuide - Question Detail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Optional: MathJax if you have LaTeX in your question content -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+  </script>
+  <script
+    type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+  ></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fafafa; }
+    .container { width: 90%; max-width: 800px; margin: 1rem auto; background: #fff; padding: 1rem; }
+    a { color: #2979ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1 { margin-bottom: 0.5rem; }
+    .metadata { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
+    .metadata div { margin-bottom: 0.2rem; }
+    details { margin: 1rem 0; }
+    summary { cursor: pointer; font-weight: bold; color: #007BFF; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html">&larr; Back to Questions</a>
+    <h1 id="questionTitle">Question Title</h1>
+    <div class="metadata" id="metadata"></div>
+    <hr>
+
+    <h3>Task</h3>
+    <div id="taskContent"></div>
+
+    <!-- We'll insert Hint, Solution, Answer details below -->
+    <div id="extraContent"></div>
+  </div>
+
+  <script>
+    // Parse the ?id= from the URL
+    const params = new URLSearchParams(window.location.search);
+    const questionId = parseInt(params.get("id") || "0");
+
+    // Load the JSON
+    fetch("questionsData.json")
+      .then(res => res.json())
+      .then(data => {
+        // Find the question with matching id
+        const question = data.find(q => q.id === questionId);
+        if (!question) {
+          document.getElementById("questionTitle").textContent = "Question Not Found";
+          return;
+        }
+
+        displayQuestion(question);
+      })
+      .catch(err => console.error("Error loading question data:", err));
+
+    function displayQuestion(q) {
+      // Title
+      document.getElementById("questionTitle").textContent = q.title;
+
+      // Metadata
+      const metaDiv = document.getElementById("metadata");
+      metaDiv.innerHTML = `
+        <div><strong>Topic:</strong> ${q.topic}</div>
+        <div><strong>Difficulty:</strong> ${q.difficulty}</div>
+        <div><strong>Companies:</strong> ${q.companies.join(", ") || "None"}</div>
+        <div><strong>URL:</strong> <a href="${q.url}" target="_blank">${q.url}</a></div>
+        <div><strong>Last Edited:</strong> ${q.lastEditedAt} by ${q.lastEditedBy}</div>
+      `;
+
+      // Task
+      document.getElementById("taskContent").innerHTML = q.taskHTML;
+
+      // Extra (Hint, Solution, Answer)
+      const extraDiv = document.getElementById("extraContent");
+      // We'll just place them in the same order: Hint -> Solution -> Answer
+      // They are already in <details> format from your snippet
+      let extraHTML = "";
+      if (q.hintHTML) extraHTML += q.hintHTML;
+      if (q.solutionHTML) extraHTML += q.solutionHTML;
+      if (q.answerHTML) extraHTML += q.answerHTML;
+      extraDiv.innerHTML = extraHTML;
+
+      // Re-render MathJax if present
+      if (window.MathJax) {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }
+    }
+  </script>
+</body>
+</html>
