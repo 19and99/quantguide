@@ -7,7 +7,23 @@ const topicFilter = document.getElementById("topicFilter");
 const difficultyFilter = document.getElementById("difficultyFilter");
 const companiesSection = document.getElementById("companiesSection");
 
-// Load questions data
+// Load solved questions data from localStorage
+function loadSolvedQuestions() {
+  const saved = localStorage.getItem('solvedQuestions');
+  if (saved) {
+    solvedQuestions = JSON.parse(saved);
+  } else {
+    solvedQuestions = {};
+  }
+  loadQuestionsData(); // Continue by loading questions data
+}
+
+// Save solved questions data to localStorage
+function saveSolvedQuestions() {
+  localStorage.setItem('solvedQuestions', JSON.stringify(solvedQuestions));
+}
+
+// Load questions data from JSON file
 function loadQuestionsData() {
   fetch("questionsData.json")
     .then(res => res.json())
@@ -18,36 +34,6 @@ function loadQuestionsData() {
       renderTable(questionsData);
     })
     .catch(err => console.error("Error loading questions JSON:", err));
-}
-
-// Load solved questions data from solvedQuestions.json
-function loadSolvedQuestions() {
-    fetch('solvedQuestions.json')
-    .then(res => res.json())
-    .then(data => {
-      solvedQuestions = data;
-      loadQuestionsData(); // After loading solved questions, load the questions data
-    })
-    .catch(err => {
-      console.error("Error loading solved questions JSON:", err);
-      solvedQuestions = {}; // Fallback: initialize as an empty object if loading fails
-      loadQuestionsData();
-    });
-}
-
-// Save solved questions data to solvedQuestions.json
-function saveSolvedQuestions() {
-  // Simulating saving to the server by using a POST request (you'll need a server that handles this).
-  fetch("solvedQuestions.json", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(solvedQuestions)
-  })
-    .then(res => res.json())
-    .then(data => {
-      console.log("Solved questions saved:", data);
-    })
-    .catch(err => console.error("Error saving solved questions data:", err));
 }
 
 // Populate topic and difficulty dropdowns
@@ -110,7 +96,7 @@ function renderTable(questions) {
   questions.forEach(q => {
     const row = document.createElement("tr");
 
-    // Create star cell with solved state loaded from external file.
+    // Create star cell with solved state loaded from localStorage.
     const starCell = document.createElement("td");
     const starBtn = document.createElement("span");
     starBtn.innerHTML = solvedQuestions[q.id] ? "&#9733;" : "&#9734;"; // filled vs outline star
@@ -167,5 +153,5 @@ searchInput.addEventListener("input", filterQuestions);
 topicFilter.addEventListener("change", filterQuestions);
 difficultyFilter.addEventListener("change", filterQuestions);
 
-// Load solved questions from the server (solvedQuestions.json)
+// Load solved questions from localStorage on page load
 loadSolvedQuestions();
