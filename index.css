@@ -1,13 +1,14 @@
-/* Basic resets and fonts */
+/* Reset and base */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
-  body {
+  html, body {
+    height: 100%;
     font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
     color: #333;
+    background-color: #f9f9f9;
   }
   
   /* Header */
@@ -21,58 +22,76 @@
     font-weight: bold;
   }
   
-  /* Container layout: main content + sidebar */
-  .container {
+  /* Main container: table + sidebar side by side
+     Add margin and gap for visual spacing */
+  .main-container {
     display: flex;
-    padding: 1rem;
+    margin: 1rem;
     gap: 1rem;
+    /* This area extends nearly full height,
+       but we must leave space for the fixed footer. */
+    height: calc(100% - 66px - 2rem); /* subtract header + margin space */
+    padding-bottom: 60px; /* space for the fixed footer if you scroll */
   }
   
-  /* Main content area (table + pagination) */
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Table container */
+  /* Table container: scrollable */
   .table-container {
-    position: relative; /* for the absolutely positioned search bar */
+    flex: 1;
+    position: relative; /* for the search bar */
+    overflow: auto;     /* scrollable table area */
     background-color: #fff;
+    border-right: 1px solid #ddd;
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow: hidden;
   }
   
-  /* Table itself */
+  /* The table itself */
   table {
     width: 100%;
     border-collapse: collapse;
   }
   
-  th, td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-  }
-  
-  /* Table header */
   thead {
     background-color: #f0f0f0;
     border-bottom: 2px solid #ddd;
   }
+  th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
   .name-col {
     width: 40%;
   }
-  .topic-col {
+  .topic-col, .difficulty-col {
     width: 30%;
-    position: relative; /* for the dropdown */
-  }
-  .difficulty-col {
-    width: 30%;
-    position: relative; /* for the dropdown */
+    position: relative;
   }
   
-  /* Search bar in the top-right corner */
+  /* We only want the clickable-area to be clickable, not the entire th */
+  .clickable-area {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+  
+  /* Arrow next to column title */
+  .arrow {
+    font-size: 0.8rem;
+    margin-left: 0.3rem;
+    color: gray;
+  }
+  
+  /* Table body alternating row colors */
+  tbody tr:nth-child(odd) {
+    background-color: #fff;
+  }
+  tbody tr:nth-child(even) {
+    background-color: #f7f7f7;
+  }
+  
+  /* Search bar on top-right of table container */
   .search-bar {
     position: absolute;
     top: 0.5rem;
@@ -84,18 +103,10 @@
     border-radius: 4px;
   }
   
-  /* Dropdown arrow */
-  .arrow {
-    font-size: 0.8rem;
-    margin-left: 0.3rem;
-    cursor: pointer;
-    color: gray;
-  }
-  
-  /* Dropdown containers (initially hidden) */
+  /* Dropdown menus for topic/difficulty */
   .dropdown {
     position: absolute;
-    top: 2rem;
+    top: 2.3rem;
     left: 0;
     background-color: #fff;
     border: 1px solid #ccc;
@@ -115,15 +126,7 @@
     background-color: #eee;
   }
   
-  /* Table body alternating row colors */
-  tbody tr:nth-child(odd) {
-    background-color: #fff;
-  }
-  tbody tr:nth-child(even) {
-    background-color: #f7f7f7;
-  }
-  
-  /* Star button (solved/unsolved) placed to the right within the same row */
+  /* Star button in difficulty cell */
   .star-btn {
     float: right;
     cursor: pointer;
@@ -135,34 +138,14 @@
     color: gold;
   }
   
-  /* Pagination row */
-  .pagination {
-    display: flex;
-    align-items: center;
-    margin-top: 0.5rem;
-    gap: 1rem;
-  }
-  .results-count {
-    font-size: 0.9rem;
-    color: #555;
-  }
-  .page-controls button {
-    cursor: pointer;
-    padding: 0.3rem 0.6rem;
-    margin: 0 0.2rem;
-  }
-  .page-controls span {
-    margin: 0 0.5rem;
-  }
-  
-  /* Sidebar */
+  /* Sidebar for companies */
   .sidebar {
     width: 300px;
     background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     padding: 1rem;
     box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 4px;
   }
   .sidebar h2 {
     margin-bottom: 1rem;
@@ -176,24 +159,25 @@
     border: 1px solid #ccc;
     border-radius: 4px;
   }
-  #companies-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    max-height: 200px; /* example scroll or pagination usage */
-    overflow: hidden;
-  }
-  #companies-list li {
-    background-color: #f0f0f0;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 15px;
+  
+  /* Companies container with "chips" */
+  .companies-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    /* We remove the max-height to ensure up to 8 items can appear.
+       If you want a scroll, you can set a max-height and overflow here. */
   }
-  #companies-list li:hover {
+  .company-chip {
+    background-color: #f0f0f0;
+    border-radius: 15px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .company-chip:hover {
     background-color: #e0e0e0;
   }
   .company-pagination {
@@ -204,5 +188,37 @@
     cursor: pointer;
     padding: 0.3rem 0.6rem;
     margin: 0 0.3rem;
+  }
+  
+  /* Fixed pagination footer at bottom
+     Arrows on the right, results on the left, page-size in the middle */
+  .pagination-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+  }
+  .results-count {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .page-size-select {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .page-controls button {
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    margin: 0 0.2rem;
+  }
+  .page-controls span {
+    margin: 0 0.5rem;
   }
   

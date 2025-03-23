@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>QuantGuide</title>
-  <!-- Link to your CSS file -->
   <link rel="stylesheet" href="index.css" />
 </head>
 <body>
@@ -12,70 +11,58 @@
     <div class="header-title">QuantGuide</div>
   </header>
 
-  <!-- Main container -->
-  <div class="container">
-    <!-- Main content: table + pagination -->
-    <div class="main-content">
-      <!-- Table wrapper -->
-      <div class="table-container">
-        <!-- The table header row (Name, Topic, Difficulty) -->
-        <table>
-          <thead>
-            <tr>
-              <th class="name-col">Name</th>
-              <th class="topic-col">
-                Topic 
+  <!-- Main container (table + sidebar) -->
+  <div class="main-container">
+    <!-- Left side: Table (scrollable) -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th class="name-col">Name</th>
+            <th class="topic-col">
+              <!-- Only this small box is clickable -->
+              <div class="clickable-area" id="topic-header-click">
+                <span class="col-title" id="topic-col-title">Topic</span>
                 <span class="topic-arrow arrow">►</span>
-                <!-- Example dropdown (toggle visibility in JS) -->
-                <div class="dropdown topic-dropdown hidden" id="topicDropdown">
-                  <!-- Populated via JS with unique topics -->
-                </div>
-              </th>
-              <th class="difficulty-col">
-                Difficulty 
+              </div>
+              <!-- Topic dropdown -->
+              <div class="dropdown hidden" id="topicDropdown"></div>
+            </th>
+            <th class="difficulty-col">
+              <div class="clickable-area" id="difficulty-header-click">
+                <span class="col-title" id="difficulty-col-title">Difficulty</span>
                 <span class="difficulty-arrow arrow">►</span>
-                <!-- Example dropdown (toggle visibility in JS) -->
-                <div class="dropdown difficulty-dropdown hidden" id="difficultyDropdown">
-                  <!-- Populated via JS with unique difficulties -->
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="questions-tbody">
-            <!-- Populated via JavaScript -->
-          </tbody>
-        </table>
+              </div>
+              <!-- Difficulty dropdown -->
+              <div class="dropdown hidden" id="difficultyDropdown"></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="questions-tbody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
 
-        <!-- Search bar absolutely positioned in the top-right of the table container -->
-        <div class="search-bar">
-          <input type="text" id="search-input" placeholder="Search..." />
-        </div>
-      </div>
-
-      <!-- Pagination row -->
-      <div class="pagination">
-        <div class="results-count">
-          Results: <span id="results-count">0</span>
-        </div>
-        <div class="page-controls">
-          <button id="prev-page">&lt;</button>
-          <span id="current-page">1</span> / <span id="total-pages">1</span>
-          <button id="next-page">&gt;</button>
-        </div>
+      <!-- Search bar (absolute in table container) -->
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search..." />
       </div>
     </div>
 
-    <!-- Sidebar for Companies filters -->
+    <!-- Sidebar for companies -->
     <div class="sidebar">
       <h2>Companies</h2>
-      <!-- Company search -->
       <div class="company-search">
-        <input type="text" id="company-search-input" placeholder="Search companies..." />
+        <input
+          type="text"
+          id="company-search-input"
+          placeholder="Search companies..."
+        />
       </div>
-      <!-- Company list -->
-      <ul id="companies-list">
-        <!-- Populated via JS -->
-      </ul>
+      <!-- Container for companies (chips) -->
+      <div class="companies-container" id="companies-container">
+        <!-- Populated by JS -->
+      </div>
       <!-- Company pagination -->
       <div class="company-pagination">
         <button id="prev-company-page">&lt;</button>
@@ -84,7 +71,31 @@
     </div>
   </div>
 
-  <!-- Link to your JS file -->
+  <!-- Fixed pagination footer at bottom -->
+  <footer class="pagination-footer">
+    <!-- Results on the left -->
+    <div class="results-count">
+      Results: <span id="results-count">0</span>
+    </div>
+
+    <!-- Page-size select in the middle -->
+    <div class="page-size-select">
+      <label for="page-size">Rows per page:</label>
+      <select id="page-size">
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+
+    <!-- Page controls on the right -->
+    <div class="page-controls">
+      <button id="prev-page">&lt;</button>
+      <span id="current-page">1</span> / <span id="total-pages">1</span>
+      <button id="next-page">&gt;</button>
+    </div>
+  </footer>
+
   <script src="index.js"></script>
 </body>
 </html>

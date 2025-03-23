@@ -1,17 +1,15 @@
 /******************************
  * Global Data/State
  ******************************/
-let allQuestions = [];        // All questions from questionsData.json
-let filteredQuestions = [];   // Questions after search/topic/difficulty/company filters
+let allQuestions = [];
+let filteredQuestions = [];
 let currentPage = 1;
-const pageSize = 10; // number of questions per page
+let pageSize = 50; // default is 50
 
 // Companies sidebar pagination
 let currentCompanyPage = 1;
-const companiesPerPage = 5;   // number of companies shown per page
+const companiesPerPage = 8; // ensure 8 per page
 
-// For storing star states in localStorage
-// Key: "starred-[questionId]" => "true" or "false"
 function isStarred(id) {
   return localStorage.getItem(`starred-${id}`) === "true";
 }
@@ -24,26 +22,34 @@ function toggleStar(id) {
  * Fetch Data & Initialize
  ******************************/
 document.addEventListener("DOMContentLoaded", () => {
-  // Fetch the questionsData.json
   fetch("questionsData.json")
-    .then((response) => response.json())
+    .then((res) => res.json())
     .then((data) => {
       allQuestions = data;
-      filteredQuestions = [...allQuestions]; // initial copy
+      filteredQuestions = [...allQuestions];
+
       populateTopicDropdown();
       populateDifficultyDropdown();
       populateCompanySidebar();
       renderTable();
       updatePagination();
     })
-    .catch((error) => console.error("Error loading questionsData.json:", error));
+    .catch((err) => console.error("Error loading questionsData.json:", err));
 
-  // Event listeners
+  // Search input
   document
     .getElementById("search-input")
     .addEventListener("input", onSearchChange);
 
-  // Pagination buttons
+  // Page size dropdown
+  document.getElementById("page-size").addEventListener("change", (e) => {
+    pageSize = parseInt(e.target.value, 10);
+    currentPage = 1;
+    renderTable();
+    updatePagination();
+  });
+
+  // Pagination controls
   document.getElementById("prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -62,7 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Company search
   document
     .getElementById("company-search-input")
-    .addEventListener("input", populateCompanySidebar);
+    .addEventListener("input", () => {
+      currentCompanyPage = 1;
+      populateCompanySidebar();
+    });
 
   // Company pagination
   document
@@ -76,27 +85,24 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("next-company-page")
     .addEventListener("click", () => {
-      // We'll compute total pages in populateCompanySidebar()
       currentCompanyPage++;
       populateCompanySidebar();
     });
 
-  // Topic dropdown toggle
-  const topicArrow = document.querySelector(".topic-arrow");
-  topicArrow.addEventListener("click", () => {
+  // Topic header clickable
+  const topicHeader = document.getElementById("topic-header-click");
+  topicHeader.addEventListener("click", () => {
     document.getElementById("topicDropdown").classList.toggle("hidden");
-    // Toggle arrow direction
-    topicArrow.textContent =
-      topicArrow.textContent === "►" ? "▼" : "►";
+    const arrow = document.querySelector(".topic-arrow");
+    arrow.textContent = arrow.textContent === "►" ? "▼" : "►";
   });
 
-  // Difficulty dropdown toggle
-  const difficultyArrow = document.querySelector(".difficulty-arrow");
-  difficultyArrow.addEventListener("click", () => {
+  // Difficulty header clickable
+  const difficultyHeader = document.getElementById("difficulty-header-click");
+  difficultyHeader.addEventListener("click", () => {
     document.getElementById("difficultyDropdown").classList.toggle("hidden");
-    // Toggle arrow direction
-    difficultyArrow.textContent =
-      difficultyArrow.textContent === "►" ? "▼" : "►";
+    const arrow = document.querySelector(".difficulty-arrow");
+    arrow.textContent = arrow.textContent === "►" ? "▼" : "►";
   });
 });
 
@@ -107,7 +113,7 @@ function renderTable() {
   const tbody = document.getElementById("questions-tbody");
   tbody.innerHTML = "";
 
-  // Calculate slice for pagination
+  // Pagination slice
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const pageItems = filteredQuestions.slice(startIndex, endIndex);
@@ -115,37 +121,31 @@ function renderTable() {
   pageItems.forEach((q) => {
     const tr = document.createElement("tr");
 
-    // Name cell
+    // Name
     const nameTd = document.createElement("td");
     nameTd.textContent = q.title;
-    // If you want to link to a single-problem page later, you could do:
-    // nameTd.addEventListener("click", () => {
-    //   // navigate or show single question (not implemented yet)
-    // });
     tr.appendChild(nameTd);
 
-    // Topic cell
+    // Topic
     const topicTd = document.createElement("td");
     topicTd.textContent = capitalize(q.topic);
     tr.appendChild(topicTd);
 
-    // Difficulty cell (with star in the same cell to the right)
+    // Difficulty + star
     const diffTd = document.createElement("td");
     diffTd.textContent = capitalize(q.difficulty);
 
-    // Star button
     const starSpan = document.createElement("span");
     starSpan.classList.add("star-btn");
     if (isStarred(q.id)) {
       starSpan.classList.add("solved");
-      starSpan.textContent = "★"; // gold star
+      starSpan.textContent = "★";
     } else {
-      starSpan.textContent = "☆"; // outlined star
+      starSpan.textContent = "☆";
     }
     starSpan.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleStar(q.id);
-      // Update star UI
       if (isStarred(q.id)) {
         starSpan.classList.add("solved");
         starSpan.textContent = "★";
@@ -154,7 +154,6 @@ function renderTable() {
         starSpan.textContent = "☆";
       }
     });
-
     diffTd.appendChild(starSpan);
     tr.appendChild(diffTd);
 
@@ -167,26 +166,22 @@ function renderTable() {
 }
 
 /******************************
- * Pagination UI
+ * Update Pagination
  ******************************/
 function updatePagination() {
-  const totalPages = Math.ceil(filteredQuestions.length / pageSize);
+  const totalPages = Math.ceil(filteredQuestions.length / pageSize) || 1;
   document.getElementById("current-page").textContent = currentPage;
-  document.getElementById("total-pages").textContent = totalPages || 1;
+  document.getElementById("total-pages").textContent = totalPages;
 }
 
 /******************************
- * Search Filtering
+ * Search
  ******************************/
 function onSearchChange() {
-  const searchValue = this.value.toLowerCase().trim();
-
-  // Filter by search
+  const val = this.value.toLowerCase().trim();
   filteredQuestions = allQuestions.filter((q) =>
-    q.title.toLowerCase().includes(searchValue)
+    q.title.toLowerCase().includes(val)
   );
-
-  // Reset pagination
   currentPage = 1;
   renderTable();
   updatePagination();
@@ -199,7 +194,26 @@ function populateTopicDropdown() {
   const topicDropdown = document.getElementById("topicDropdown");
   topicDropdown.innerHTML = "";
 
-  // Get unique topics
+  // "All" option
+  const allDiv = document.createElement("div");
+  allDiv.textContent = "All";
+  allDiv.addEventListener("click", () => {
+    // Remove topic filter
+    filteredQuestions = [...allQuestions];
+    currentPage = 1;
+    renderTable();
+    updatePagination();
+
+    // Reset column title
+    document.getElementById("topic-col-title").textContent = "Topic";
+
+    // Close dropdown
+    topicDropdown.classList.add("hidden");
+    document.querySelector(".topic-arrow").textContent = "►";
+  });
+  topicDropdown.appendChild(allDiv);
+
+  // Unique topics
   const uniqueTopics = [
     ...new Set(allQuestions.map((q) => q.topic.toLowerCase())),
   ];
@@ -208,13 +222,17 @@ function populateTopicDropdown() {
     const div = document.createElement("div");
     div.textContent = capitalize(topic);
     div.addEventListener("click", () => {
-      // Filter by this topic
+      // Filter
       filteredQuestions = allQuestions.filter(
         (q) => q.topic.toLowerCase() === topic
       );
       currentPage = 1;
       renderTable();
       updatePagination();
+
+      // Update the column title
+      document.getElementById("topic-col-title").textContent = capitalize(topic);
+
       // Close dropdown
       topicDropdown.classList.add("hidden");
       document.querySelector(".topic-arrow").textContent = "►";
@@ -227,7 +245,26 @@ function populateDifficultyDropdown() {
   const difficultyDropdown = document.getElementById("difficultyDropdown");
   difficultyDropdown.innerHTML = "";
 
-  // Get unique difficulties
+  // "All" option
+  const allDiv = document.createElement("div");
+  allDiv.textContent = "All";
+  allDiv.addEventListener("click", () => {
+    // Remove difficulty filter
+    filteredQuestions = [...allQuestions];
+    currentPage = 1;
+    renderTable();
+    updatePagination();
+
+    // Reset column title
+    document.getElementById("difficulty-col-title").textContent = "Difficulty";
+
+    // Close dropdown
+    difficultyDropdown.classList.add("hidden");
+    document.querySelector(".difficulty-arrow").textContent = "►";
+  });
+  difficultyDropdown.appendChild(allDiv);
+
+  // Unique difficulties
   const uniqueDiffs = [
     ...new Set(allQuestions.map((q) => q.difficulty.toLowerCase())),
   ];
@@ -236,13 +273,18 @@ function populateDifficultyDropdown() {
     const div = document.createElement("div");
     div.textContent = capitalize(diff);
     div.addEventListener("click", () => {
-      // Filter by this difficulty
+      // Filter
       filteredQuestions = allQuestions.filter(
         (q) => q.difficulty.toLowerCase() === diff
       );
       currentPage = 1;
       renderTable();
       updatePagination();
+
+      // Update the column title
+      document.getElementById("difficulty-col-title").textContent =
+        capitalize(diff);
+
       // Close dropdown
       difficultyDropdown.classList.add("hidden");
       document.querySelector(".difficulty-arrow").textContent = "►";
@@ -255,54 +297,51 @@ function populateDifficultyDropdown() {
  * Companies Sidebar
  ******************************/
 function populateCompanySidebar() {
-  const list = document.getElementById("companies-list");
-  list.innerHTML = "";
+  const container = document.getElementById("companies-container");
+  container.innerHTML = "";
 
   const searchVal = document
     .getElementById("company-search-input")
     .value.toLowerCase()
     .trim();
 
-  // Collect all companies
+  // Gather all companies from questions
   let companies = [];
   allQuestions.forEach((q) => {
-    q.companies.forEach((c) => {
-      companies.push(c);
-    });
+    q.companies.forEach((c) => companies.push(c));
   });
   // Unique + filter by search
   companies = [...new Set(companies)].filter((c) =>
     c.toLowerCase().includes(searchVal)
   );
-
-  // Sort or do any logic you want
+  // Sort (optional)
   companies.sort();
 
-  // Pagination for companies
-  const totalCompanyPages = Math.ceil(companies.length / companiesPerPage);
+  // Pagination
+  const totalCompanyPages = Math.ceil(companies.length / companiesPerPage) || 1;
   if (currentCompanyPage > totalCompanyPages) {
-    currentCompanyPage = totalCompanyPages || 1;
+    currentCompanyPage = totalCompanyPages;
   }
   const startIndex = (currentCompanyPage - 1) * companiesPerPage;
   const endIndex = startIndex + companiesPerPage;
   const pageCompanies = companies.slice(startIndex, endIndex);
 
-  // Render
+  // Render as chips
   pageCompanies.forEach((company) => {
-    const li = document.createElement("li");
+    const chip = document.createElement("div");
+    chip.classList.add("company-chip");
 
     // Count how many questions have this company
-    const count = allQuestions.filter((q) =>
-      q.companies.includes(company)
-    ).length;
+    const count = allQuestions.filter((q) => q.companies.includes(company))
+      .length;
 
-    li.innerHTML = `
+    chip.innerHTML = `
       <span>${company}</span>
       <span>${count}</span>
     `;
 
-    // On click, filter the main question list by this company
-    li.addEventListener("click", () => {
+    chip.addEventListener("click", () => {
+      // Filter questions by selected company
       filteredQuestions = allQuestions.filter((q) =>
         q.companies.includes(company)
       );
@@ -311,7 +350,7 @@ function populateCompanySidebar() {
       updatePagination();
     });
 
-    list.appendChild(li);
+    container.appendChild(chip);
   });
 }
 
