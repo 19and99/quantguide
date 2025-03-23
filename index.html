@@ -41,66 +41,15 @@
     }
     th {
       background: #f9f9f9;
+      cursor: pointer;
     }
     /* Fixed column widths */
-    th:nth-child(1), td:nth-child(1) { width: 5%; }
-    th:nth-child(2), td:nth-child(2) { width: 45%; }
-    th:nth-child(3), td:nth-child(3) { width: 25%; }
-    th:nth-child(4), td:nth-child(4) { width: 25%; }
-    /* Header: first row for column names */
-    thead tr.column-headers th {
-      font-weight: bold;
-      text-align: left;
-    }
-    /* Star column has no header text */
-    thead tr.column-headers th:first-child {
-      background: #f9f9f9;
-    }
-    /* Topic and Difficulty dropdowns with down arrow; Difficulty header centered */
-    thead tr.column-headers th:nth-child(3) select,
-    thead tr.column-headers th:nth-child(4) select {
-      width: 100%;
-      padding: 0.25rem;
-      font-size: 1rem;
-      font-weight: bold;
-      border: none;
-      background: transparent;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-    }
-    thead tr.column-headers th:nth-child(4) {
-      text-align: center;
-    }
-    /* Second row: pagination controls spanning all columns */
-    thead tr.pagination-row th {
-      border: none;
-      background: transparent;
-      padding: 0.25rem 0;
-    }
-    .pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pagination button {
-      padding: 0.5rem 1rem;
-      border: 1px solid #ccc;
-      background: #fff;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    .pagination button:hover {
-      background: #f2f2f2;
-    }
-    .pagination select {
-      padding: 0.4rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    /* Third row: search bar row (left-aligned) */
-    thead tr.search-row th {
+    th#titleHeader { width: 45%; }
+    th#starHeader { width: 5%; }
+    th#topicHeader { width: 25%; position: relative; }
+    th#difficultyHeader { width: 25%; position: relative; text-align: center; }
+    /* Search Bar Row */
+    .search-row th {
       border: none;
       background: transparent;
       padding: 0.25rem 0;
@@ -112,13 +61,12 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    /* Problem count display */
-    .search-row .problem-count {
+    .problem-count {
       float: right;
       font-size: 0.9rem;
       margin-top: 0.2rem;
     }
-    /* Question Title Links */
+    /* Link styling */
     table a {
       color: #2979ff;
       text-decoration: none;
@@ -176,10 +124,6 @@
       background: #2979ff;
       color: white;
     }
-    .companies span.clear {
-      font-weight: bold;
-      background: #ffd;
-    }
     /* Difficulty label styling */
     .difficulty-label {
       display: inline-block;
@@ -187,6 +131,29 @@
       border-radius: 4px;
       font-weight: bold;
       text-align: center;
+    }
+    /* Dropdown styles */
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .dropdown-item {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    .dropdown-item:hover {
+      background: #f2f2f2;
+    }
+    /* Arrow icon styling */
+    .arrow {
+      font-size: 0.8rem;
+      margin-left: 5px;
     }
   </style>
 </head>
@@ -197,54 +164,52 @@
       <!-- Table with three header rows -->
       <table>
         <thead>
-        <!-- Row 1: Search Bar and Problem Count -->
-          <tr class="search-row" background="black">
-            <td colspan="4">
+          <!-- Row 1: Search Bar and Problem Count -->
+          <tr class="search-row">
+            <th colspan="4">
               <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search questions...">
                 <span class="problem-count" id="problemCount">Showing 0 problems</span>
               </div>
-            </td>
+            </th>
           </tr>
-          <!-- Row 1: Column Headers -->
+          <!-- Row 2: Column Headers -->
           <tr class="column-headers">
-            <th></th>
-            <th>Title</th>
-            <th>
-              <select id="topicFilter">
-                <option value="">Topic ▼</option>
-              </select>
+            <th id="titleHeader">Title</th>
+            <th id="starHeader">★</th>
+            <th id="topicHeader">
+              Topic <span class="arrow" id="topicArrow">&#9654;</span>
+              <div class="dropdown" id="topicDropdown" style="display:none;"></div>
             </th>
-            <th>
-              <select id="difficultyFilter">
-                <option value="">Difficulty ▼</option>
-              </select>
+            <th id="difficultyHeader">
+              Difficulty <span class="arrow" id="difficultyArrow">&#9654;</span>
+              <div class="dropdown" id="difficultyDropdown" style="display:none;"></div>
             </th>
           </tr>
-                    <!-- Row 2: Pagination -->
-                    <tr class="pagination-row">
-                        <th colspan="4">
-                          <div class="pagination">
-                            <div class="pagination-left">
-                              <button id="prevPage">&#8592;</button>
-                              <button id="nextPage">&#8594;</button>
-                              <span>
-                                Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-                              </span>
-                            </div>
-                            <div class="pagination-right">
-                              <span>
-                                Questions per page:
-                                <select id="pageSize">
-                                  <option value="25">25</option>
-                                  <option value="50" selected>50</option>
-                                  <option value="100">100</option>
-                                </select>
-                              </span>
-                            </div>
-                          </div>
-                        </th>
-                      </tr>
+          <!-- Row 3: Pagination -->
+          <tr class="pagination-row">
+            <th colspan="4">
+              <div class="pagination">
+                <div class="pagination-left">
+                  <button id="prevPage">&#8592;</button>
+                  <button id="nextPage">&#8594;</button>
+                  <span>
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                  </span>
+                </div>
+                <div class="pagination-right">
+                  <span>
+                    Questions per page:
+                    <select id="pageSize">
+                      <option value="25">25</option>
+                      <option value="50" selected>50</option>
+                      <option value="100">100</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+            </th>
+          </tr>
         </thead>
         <tbody id="questionsTableBody">
           <!-- Populated by script.js -->

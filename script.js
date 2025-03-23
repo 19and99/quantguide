@@ -7,10 +7,14 @@ let filteredData = [];       // final filtered data (including company filter)
 let currentPage = 1;
 let pageSize = 50;           // default page size
 
+// New global variables for our custom filters and sorting
+let selectedTopicFilter = null;
+let selectedDifficultyFilter = null;
+let sortColumn = null;
+let sortOrder = 'asc';
+
 const tableBody = document.getElementById("questionsTableBody");
 const searchInput = document.getElementById("searchInput");
-const topicFilter = document.getElementById("topicFilter");
-const difficultyFilter = document.getElementById("difficultyFilter");
 const companiesSection = document.getElementById("companiesSection");
 const problemCount = document.getElementById("problemCount");
 const currentPageSpan = document.getElementById("currentPage");
@@ -19,86 +23,114 @@ const prevPageBtn = document.getElementById("prevPage");
 const nextPageBtn = document.getElementById("nextPage");
 const pageSizeSelect = document.getElementById("pageSize");
 
-// Helper: Capitalize first letter of a string
-function capitalizeFirst(str) {
+// Helper: Convert string to Title Case
+function toTitleCase(str) {
   if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 }
 
-// --- Dropdown Toggling Functions ---
+// --- Dropdown Toggle Functions ---
 
-function toggleTitleDropdown(e) {
-  e.stopPropagation();
-  const dropdown = document.getElementById('titleDropdown');
-  // Close the other dropdown if open
-  const diffDropdown = document.getElementById('difficultyDropdown');
-  diffDropdown.style.display = 'none';
-  diffDropdown.parentElement.classList.remove('active');
-
-  // Toggle Title dropdown
+function toggleDropdown(dropdownId, arrowId) {
+  const dropdown = document.getElementById(dropdownId);
+  const arrow = document.getElementById(arrowId);
   if (dropdown.style.display === 'block') {
     dropdown.style.display = 'none';
-    e.currentTarget.classList.remove('active');
+    arrow.innerHTML = "&#9654;"; // right arrow
   } else {
+    // Close any open dropdowns first
+    closeDropdown("topicDropdown");
+    closeDropdown("difficultyDropdown");
     dropdown.style.display = 'block';
-    e.currentTarget.classList.add('active');
+    arrow.innerHTML = "&#9660;"; // down arrow
   }
 }
 
-function toggleDifficultyDropdown(e) {
-  e.stopPropagation();
-  const dropdown = document.getElementById('difficultyDropdown');
-  // Close the other dropdown if open
-  const titleDropdown = document.getElementById('titleDropdown');
-  titleDropdown.style.display = 'none';
-  titleDropdown.parentElement.classList.remove('active');
-
-  // Toggle Difficulty dropdown
-  if (dropdown.style.display === 'block') {
+function closeDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  if (dropdown) {
     dropdown.style.display = 'none';
-    e.currentTarget.classList.remove('active');
-  } else {
-    dropdown.style.display = 'block';
-    e.currentTarget.classList.add('active');
+    if (dropdownId === "topicDropdown") {
+      document.getElementById("topicArrow").innerHTML = "&#9654;";
+    } else if (dropdownId === "difficultyDropdown") {
+      document.getElementById("difficultyArrow").innerHTML = "&#9654;";
+    }
   }
 }
 
-// Close dropdowns if clicking elsewhere
-document.addEventListener('click', () => {
-  const titleDropdown = document.getElementById('titleDropdown');
-  const difficultyDropdown = document.getElementById('difficultyDropdown');
-  titleDropdown.style.display = 'none';
-  difficultyDropdown.style.display = 'none';
-  titleDropdown.parentElement.classList.remove('active');
-  difficultyDropdown.parentElement.classList.remove('active');
-});
-
-// Attach dropdown event listeners after DOM loads
-document.addEventListener("DOMContentLoaded", () => {
-  const headerCells = document.querySelectorAll(".sortable-header");
-  if (headerCells[0]) {
-    headerCells[0].addEventListener("click", toggleTitleDropdown);
+// Close dropdowns if clicking outside
+document.addEventListener('click', (e) => {
+  const topicHeader = document.getElementById("topicHeader");
+  const difficultyHeader = document.getElementById("difficultyHeader");
+  if (!topicHeader.contains(e.target)) {
+    closeDropdown("topicDropdown");
   }
-  if (headerCells[1]) {
-    headerCells[1].addEventListener("click", toggleDifficultyDropdown);
+  if (!difficultyHeader.contains(e.target)) {
+    closeDropdown("difficultyDropdown");
   }
 });
 
-// --- End Dropdown Functions ---
+// --- Sorting Functionality ---
 
-// Load solved questions from localStorage then load questions data
+function sortByColumn(column) {
+  if (sortColumn === column) {
+    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortColumn = column;
+    sortOrder = 'asc';
+  }
+  applyFilters();
+  updateSortIndicators();
+}
+
+function updateSortIndicators() {
+  // Update headers to visually indicate sorted column (e.g., via a CSS class)
+  const titleHeader = document.getElementById("titleHeader");
+  const topicHeader = document.getElementById("topicHeader");
+  const difficultyHeader = document.getElementById("difficultyHeader");
+  
+  titleHeader.classList.toggle("sorted", sortColumn === "title");
+  topicHeader.classList.toggle("sorted", sortColumn === "topic");
+  difficultyHeader.classList.toggle("sorted", sortColumn === "difficulty");
+}
+
+// --- Event Listeners on Header Cells for Sorting and Dropdowns ---
+
+document.getElementById("titleHeader").addEventListener("click", (e) => {
+  // Clicking title header (excluding any nested elements) sorts by title.
+  sortByColumn("title");
+});
+
+document.getElementById("topicHeader").addEventListener("click", (e) => {
+  if (e.target.id === "topicArrow") {
+    toggleDropdown("topicDropdown", "topicArrow");
+  } else {
+    sortByColumn("topic");
+  }
+});
+
+document.getElementById("difficultyHeader").addEventListener("click", (e) => {
+  if (e.target.id === "difficultyArrow") {
+    toggleDropdown("difficultyDropdown", "difficultyArrow");
+  } else {
+    sortByColumn("difficulty");
+  }
+});
+
+// --- LocalStorage Handling for Solved Questions ---
+
 function loadSolvedQuestions() {
   const saved = localStorage.getItem('solvedQuestions');
   solvedQuestions = saved ? JSON.parse(saved) : {};
   loadQuestionsData();
 }
 
-// Save solved questions to localStorage
 function saveSolvedQuestions() {
   localStorage.setItem('solvedQuestions', JSON.stringify(solvedQuestions));
 }
 
-// Load questions data from JSON file
+// --- Load questions data from JSON file ---
+
 function loadQuestionsData() {
   fetch("questionsData.json")
     .then(res => res.json())
@@ -110,7 +142,7 @@ function loadQuestionsData() {
     .catch(err => console.error("Error loading questions JSON:", err));
 }
 
-// Populate dropdowns for topic and difficulty filters
+// --- Populate Dropdown Menus for Topic and Difficulty Filters ---
 function populateDropdowns() {
   const topics = new Set();
   const difficulties = new Set();
@@ -119,22 +151,40 @@ function populateDropdowns() {
     difficulties.add(q.difficulty);
   });
 
+  // Populate Topic dropdown
+  const topicDropdown = document.getElementById("topicDropdown");
+  topicDropdown.innerHTML = '<div class="dropdown-item" data-value="">All</div>';
   topics.forEach(topic => {
-    const option = document.createElement("option");
-    option.value = topic;
-    option.textContent = capitalizeFirst(topic);
-    topicFilter.appendChild(option);
+    const item = document.createElement("div");
+    item.className = "dropdown-item";
+    item.textContent = toTitleCase(topic);
+    item.dataset.value = topic;
+    item.addEventListener("click", () => {
+      selectedTopicFilter = topic;
+      closeDropdown("topicDropdown");
+      applyFilters();
+    });
+    topicDropdown.appendChild(item);
   });
 
+  // Populate Difficulty dropdown
+  const difficultyDropdown = document.getElementById("difficultyDropdown");
+  difficultyDropdown.innerHTML = '<div class="dropdown-item" data-value="">All</div>';
   difficulties.forEach(diff => {
-    const option = document.createElement("option");
-    option.value = diff;
-    option.textContent = capitalizeFirst(diff);
-    difficultyFilter.appendChild(option);
+    const item = document.createElement("div");
+    item.className = "dropdown-item";
+    item.textContent = toTitleCase(diff);
+    item.dataset.value = diff;
+    item.addEventListener("click", () => {
+      selectedDifficultyFilter = diff;
+      closeDropdown("difficultyDropdown");
+      applyFilters();
+    });
+    difficultyDropdown.appendChild(item);
   });
 }
 
-// Render company filter buttons based on filtered data (excluding company filter)
+// --- Render Companies in Sidebar ---
 function renderCompanies() {
   const companyCounts = {};
   baseFiltered.forEach(q => {
@@ -163,11 +213,11 @@ function renderCompanies() {
   });
 }
 
-// Apply search/topic/difficulty filters (excluding company filter)
+// --- Apply Filters, Sorting, and Render Table ---
 function applyFilters() {
   const searchText = searchInput.value.toLowerCase();
-  const selectedTopic = topicFilter.value || null;
-  const selectedDiff = difficultyFilter.value || null;
+  const selectedTopic = selectedTopicFilter;
+  const selectedDiff = selectedDifficultyFilter;
   
   baseFiltered = questionsData.filter(q => {
     const matchesSearch = q.title.toLowerCase().includes(searchText) ||
@@ -181,13 +231,24 @@ function applyFilters() {
   // Apply company filter if one is selected
   filteredData = selectedCompany ? baseFiltered.filter(q => q.companies.includes(selectedCompany)) : baseFiltered;
   
+  // Apply sorting if a column is selected
+  if (sortColumn) {
+    filteredData.sort((a, b) => {
+      let aVal = a[sortColumn].toLowerCase();
+      let bVal = b[sortColumn].toLowerCase();
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  
   currentPage = 1;
   renderTable();
   updatePaginationInfo();
   renderCompanies();
 }
 
-// Render the questions table
+// --- Render the Questions Table ---
 function renderTable() {
   tableBody.innerHTML = "";
   const startIndex = (currentPage - 1) * pageSize;
@@ -196,6 +257,10 @@ function renderTable() {
   
   pageData.forEach(q => {
     const row = document.createElement("tr");
+
+    // Title cell with link
+    const titleCell = document.createElement("td");
+    titleCell.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
 
     // Star cell (indicates solved state)
     const starCell = document.createElement("td");
@@ -211,20 +276,16 @@ function renderTable() {
     });
     starCell.appendChild(starBtn);
 
-    // Title cell with link
-    const titleCell = document.createElement("td");
-    titleCell.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
-
-    // Topic cell (capitalize display)
+    // Topic cell (display in Title Case)
     const topicCell = document.createElement("td");
-    topicCell.textContent = capitalizeFirst(q.topic);
+    topicCell.textContent = toTitleCase(q.topic);
 
-    // Difficulty cell with label (capitalize display)
+    // Difficulty cell with label (display in Title Case)
     const diffCell = document.createElement("td");
     diffCell.style.textAlign = "center";
     const diffLabel = document.createElement("span");
     diffLabel.className = "difficulty-label";
-    diffLabel.textContent = capitalizeFirst(q.difficulty);
+    diffLabel.textContent = toTitleCase(q.difficulty);
     const diffLower = q.difficulty.toLowerCase();
     if (diffLower === "hard") {
       diffLabel.style.backgroundColor = "#ffcccc"; // light red
@@ -235,8 +296,9 @@ function renderTable() {
     }
     diffCell.appendChild(diffLabel);
 
-    row.appendChild(starCell);
+    // Append cells in new column order: Title, Star, Topic, Difficulty
     row.appendChild(titleCell);
+    row.appendChild(starCell);
     row.appendChild(topicCell);
     row.appendChild(diffCell);
 
@@ -246,7 +308,7 @@ function renderTable() {
   problemCount.textContent = `Showing ${filteredData.length} problem${filteredData.length !== 1 ? "s" : ""}`;
 }
 
-// Update pagination information
+// --- Update Pagination Information ---
 function updatePaginationInfo() {
   const totalPages = Math.max(Math.ceil(filteredData.length / pageSize), 1);
   currentPageSpan.textContent = currentPage;
@@ -256,7 +318,7 @@ function updatePaginationInfo() {
   nextPageBtn.disabled = currentPage >= totalPages;
 }
 
-// Pagination event handlers
+// --- Pagination Event Handlers ---
 function goToPage(newPage) {
   const totalPages = Math.ceil(filteredData.length / pageSize);
   if (newPage < 1 || newPage > totalPages) return;
@@ -279,10 +341,8 @@ pageSizeSelect.addEventListener("change", (e) => {
   updatePageSize(parseInt(e.target.value, 10));
 });
 
-// Filter event listeners
+// --- Filter Event Listeners ---
 searchInput.addEventListener("input", applyFilters);
-topicFilter.addEventListener("change", applyFilters);
-difficultyFilter.addEventListener("change", applyFilters);
 
 // Company search input event listener
 const companySearchInput = document.getElementById("companySearch");
