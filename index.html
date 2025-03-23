@@ -5,70 +5,151 @@
   <title>QuantGuide - All Questions</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    /* Base Styles */
     body {
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 0; 
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
       background: #fafafa;
     }
     .container {
-      display: flex;
-      justify-content: center;
-      width: 90%;
-      max-width: 1200px;
       margin: 1rem auto;
+      max-width: 1200px;
+      padding-right: 440px; /* leave room for fixed sidebar (now 500px wide) */
     }
-    /* Main content (centered) */
-    .main-content {
-      flex: 2;
-      margin-right: 1rem;
-    }
-    /* Sidebar for company filters */
-    .sidebar {
-      flex: 1;
-      background: #fff;
-      padding: 1rem;
-      border: 1px solid #ddd;
-      margin-left: 1rem;
-      height: fit-content;
-    }
-    h1 { text-align: center; margin-bottom: 1rem; }
-    .search-bar {
+    h1 {
+      text-align: center;
       margin-bottom: 1rem;
     }
-    .search-bar input {
+    /* Main content table styles */
+    .main-content {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
+      table-layout: fixed;
     }
     th, td {
       padding: 0.75rem;
       border-bottom: 1px solid #ddd;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
       vertical-align: middle;
     }
     th {
       background: #f9f9f9;
-      text-align: left;
-      position: relative;
     }
-    th select {
+    /* Fixed column widths */
+    th:nth-child(1), td:nth-child(1) { width: 5%; }
+    th:nth-child(2), td:nth-child(2) { width: 45%; }
+    th:nth-child(3), td:nth-child(3) { width: 25%; }
+    th:nth-child(4), td:nth-child(4) { width: 25%; }
+    /* Header: first row for column names */
+    thead tr.column-headers th {
+      font-weight: bold;
+      text-align: left;
+    }
+    /* Star column has no header text */
+    thead tr.column-headers th:first-child {
+      background: #f9f9f9;
+    }
+    /* Topic and Difficulty dropdowns with down arrow; Difficulty header centered */
+    thead tr.column-headers th:nth-child(3) select,
+    thead tr.column-headers th:nth-child(4) select {
       width: 100%;
       padding: 0.25rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      background: transparent;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    thead tr.column-headers th:nth-child(4) {
+      text-align: center;
+    }
+    /* Second row: pagination controls spanning all columns */
+    thead tr.pagination-row th {
+      border: none;
+      background: transparent;
+      padding: 0.25rem 0;
+    }
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pagination button {
+      padding: 0.5rem 1rem;
       border: 1px solid #ccc;
       background: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 1rem;
     }
-    tr:hover { background: #f2f2f2; }
-    a {
+    .pagination button:hover {
+      background: #f2f2f2;
+    }
+    .pagination select {
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Third row: search bar row (left-aligned) */
+    thead tr.search-row th {
+      border: none;
+      background: transparent;
+      padding: 0.25rem 0;
+      text-align: left;
+    }
+    .search-bar input {
+      width: 250px;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Problem count display */
+    .search-row .problem-count {
+      float: right;
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+    }
+    /* Question Title Links */
+    table a {
       color: #2979ff;
       text-decoration: none;
+      transition: color 0.2s ease;
     }
-    a:hover { text-decoration: underline; }
-    /* Company sidebar styles */
+    table a:hover {
+      color: #1a5bb8;
+      text-decoration: none;
+    }
+    /* Star button */
+    .star {
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: gold;
+    }
+    .unsolved {
+      color: lightgray;
+    }
+    /* Sidebar (Company Filters) – now 2× wider */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 430px;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid #ddd;
+      padding: 1rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
     .sidebar h3 {
       margin-top: 0;
     }
@@ -99,58 +180,86 @@
       font-weight: bold;
       background: #ffd;
     }
-    .star {
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: gold;
-    }
-    .unsolved {
-      color: lightgray;
+    /* Difficulty label styling */
+    .difficulty-label {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Main content area -->
     <div class="main-content">
       <h1>QuantGuide Questions</h1>
-      <!-- Search Bar -->
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search questions by title/topic/difficulty...">
-      </div>
-      <!-- Questions Table -->
+      <!-- Table with three header rows -->
       <table>
         <thead>
-          <tr>
-            <th>Star</th>
+        <!-- Row 1: Search Bar and Problem Count -->
+          <tr class="search-row" background="black">
+            <td colspan="4">
+              <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search questions...">
+                <span class="problem-count" id="problemCount">Showing 0 problems</span>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 1: Column Headers -->
+          <tr class="column-headers">
+            <th></th>
             <th>Title</th>
             <th>
               <select id="topicFilter">
-                <option value="">Topic</option>
+                <option value="">Topic ▼</option>
               </select>
             </th>
             <th>
               <select id="difficultyFilter">
-                <option value="">Difficulty</option>
+                <option value="">Difficulty ▼</option>
               </select>
             </th>
           </tr>
+                    <!-- Row 2: Pagination -->
+                    <tr class="pagination-row">
+                        <th colspan="4">
+                          <div class="pagination">
+                            <div class="pagination-left">
+                              <button id="prevPage">&#8592;</button>
+                              <button id="nextPage">&#8594;</button>
+                              <span>
+                                Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                              </span>
+                            </div>
+                            <div class="pagination-right">
+                              <span>
+                                Questions per page:
+                                <select id="pageSize">
+                                  <option value="25">25</option>
+                                  <option value="50" selected>50</option>
+                                  <option value="100">100</option>
+                                </select>
+                              </span>
+                            </div>
+                          </div>
+                        </th>
+                      </tr>
         </thead>
         <tbody id="questionsTableBody">
           <!-- Populated by script.js -->
         </tbody>
       </table>
     </div>
-    <!-- Sidebar for Company Filters -->
-    <div class="sidebar">
-      <h3>Companies</h3>
-      <input type="text" id="companySearch" placeholder="Search companies...">
-      <div class="companies" id="companiesSection">
-        <!-- Company buttons with counts will appear here -->
-      </div>
+  </div>
+  <!-- Fixed Company Filters Sidebar -->
+  <div class="sidebar">
+    <h3>Companies</h3>
+    <input type="text" id="companySearch" placeholder="Search companies...">
+    <div class="companies" id="companiesSection">
+      <!-- Company buttons with counts will appear here -->
     </div>
   </div>
-  <!-- Load external JS script -->
   <script src="script.js"></script>
 </body>
 </html>

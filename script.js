@@ -1,26 +1,99 @@
 // Global variables and DOM references
 let questionsData = [];
 let solvedQuestions = {};
-let selectedCompany = null;  // to track the currently selected company
+let selectedCompany = null;  // active company filter
+let baseFiltered = [];       // filtered by search/topic/difficulty (excluding company)
+let filteredData = [];       // final filtered data (including company filter)
+let currentPage = 1;
+let pageSize = 50;           // default page size
 
 const tableBody = document.getElementById("questionsTableBody");
 const searchInput = document.getElementById("searchInput");
 const topicFilter = document.getElementById("topicFilter");
 const difficultyFilter = document.getElementById("difficultyFilter");
 const companiesSection = document.getElementById("companiesSection");
+const problemCount = document.getElementById("problemCount");
+const currentPageSpan = document.getElementById("currentPage");
+const totalPagesSpan = document.getElementById("totalPages");
+const prevPageBtn = document.getElementById("prevPage");
+const nextPageBtn = document.getElementById("nextPage");
+const pageSizeSelect = document.getElementById("pageSize");
 
-// Load solved questions data from localStorage
+// Helper: Capitalize first letter of a string
+function capitalizeFirst(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// --- Dropdown Toggling Functions ---
+
+function toggleTitleDropdown(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('titleDropdown');
+  // Close the other dropdown if open
+  const diffDropdown = document.getElementById('difficultyDropdown');
+  diffDropdown.style.display = 'none';
+  diffDropdown.parentElement.classList.remove('active');
+
+  // Toggle Title dropdown
+  if (dropdown.style.display === 'block') {
+    dropdown.style.display = 'none';
+    e.currentTarget.classList.remove('active');
+  } else {
+    dropdown.style.display = 'block';
+    e.currentTarget.classList.add('active');
+  }
+}
+
+function toggleDifficultyDropdown(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('difficultyDropdown');
+  // Close the other dropdown if open
+  const titleDropdown = document.getElementById('titleDropdown');
+  titleDropdown.style.display = 'none';
+  titleDropdown.parentElement.classList.remove('active');
+
+  // Toggle Difficulty dropdown
+  if (dropdown.style.display === 'block') {
+    dropdown.style.display = 'none';
+    e.currentTarget.classList.remove('active');
+  } else {
+    dropdown.style.display = 'block';
+    e.currentTarget.classList.add('active');
+  }
+}
+
+// Close dropdowns if clicking elsewhere
+document.addEventListener('click', () => {
+  const titleDropdown = document.getElementById('titleDropdown');
+  const difficultyDropdown = document.getElementById('difficultyDropdown');
+  titleDropdown.style.display = 'none';
+  difficultyDropdown.style.display = 'none';
+  titleDropdown.parentElement.classList.remove('active');
+  difficultyDropdown.parentElement.classList.remove('active');
+});
+
+// Attach dropdown event listeners after DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  const headerCells = document.querySelectorAll(".sortable-header");
+  if (headerCells[0]) {
+    headerCells[0].addEventListener("click", toggleTitleDropdown);
+  }
+  if (headerCells[1]) {
+    headerCells[1].addEventListener("click", toggleDifficultyDropdown);
+  }
+});
+
+// --- End Dropdown Functions ---
+
+// Load solved questions from localStorage then load questions data
 function loadSolvedQuestions() {
   const saved = localStorage.getItem('solvedQuestions');
-  if (saved) {
-    solvedQuestions = JSON.parse(saved);
-  } else {
-    solvedQuestions = {};
-  }
+  solvedQuestions = saved ? JSON.parse(saved) : {};
   loadQuestionsData();
 }
 
-// Save solved questions data to localStorage
+// Save solved questions to localStorage
 function saveSolvedQuestions() {
   localStorage.setItem('solvedQuestions', JSON.stringify(solvedQuestions));
 }
@@ -32,13 +105,12 @@ function loadQuestionsData() {
     .then(data => {
       questionsData = data;
       populateDropdowns();
-      renderCompanies();
-      renderTable(questionsData);
+      applyFilters(); // Also renders companies
     })
     .catch(err => console.error("Error loading questions JSON:", err));
 }
 
-// Populate topic and difficulty dropdowns
+// Populate dropdowns for topic and difficulty filters
 function populateDropdowns() {
   const topics = new Set();
   const difficulties = new Set();
@@ -46,34 +118,31 @@ function populateDropdowns() {
     topics.add(q.topic);
     difficulties.add(q.difficulty);
   });
-  
-  // Populate topicFilter select – default option already present ("Topic")
+
   topics.forEach(topic => {
     const option = document.createElement("option");
     option.value = topic;
-    option.textContent = topic;
+    option.textContent = capitalizeFirst(topic);
     topicFilter.appendChild(option);
   });
-  
-  // Populate difficultyFilter select – default option already present ("Difficulty")
+
   difficulties.forEach(diff => {
     const option = document.createElement("option");
     option.value = diff;
-    option.textContent = diff;
+    option.textContent = capitalizeFirst(diff);
     difficultyFilter.appendChild(option);
   });
 }
 
-// Render companies section with clickable names and counts, including a search filter
+// Render company filter buttons based on filtered data (excluding company filter)
 function renderCompanies() {
   const companyCounts = {};
-  questionsData.forEach(q => {
+  baseFiltered.forEach(q => {
     q.companies.forEach(comp => {
       companyCounts[comp] = (companyCounts[comp] || 0) + 1;
     });
   });
   
-  // Get the search text for companies (if any)
   const companySearchInput = document.getElementById("companySearch");
   const searchText = companySearchInput ? companySearchInput.value.toLowerCase() : "";
   
@@ -83,51 +152,57 @@ function renderCompanies() {
     
     const span = document.createElement("span");
     span.textContent = `${comp} (${companyCounts[comp]})`;
-    
-    if (selectedCompany === comp) {
-      span.classList.add("selected");
-    }
+    if (selectedCompany === comp) span.classList.add("selected");
     
     span.addEventListener("click", () => {
-      if (selectedCompany === comp) {
-        selectedCompany = null;
-        renderTable(questionsData);
-      } else {
-        selectedCompany = comp;
-        const filtered = questionsData.filter(q => q.companies.includes(comp));
-        renderTable(filtered);
-      }
+      selectedCompany = selectedCompany === comp ? null : comp;
+      applyFilters();
       renderCompanies();
     });
     companiesSection.appendChild(span);
   });
-  
-  // Clear filter option
-  const clearSpan = document.createElement("span");
-  clearSpan.textContent = "Clear Company Filter";
-  clearSpan.classList.add("clear");
-  clearSpan.addEventListener("click", () => {
-    selectedCompany = null;
-    renderTable(questionsData);
-    renderCompanies();
-  });
-  companiesSection.appendChild(clearSpan);
 }
 
-// Render table rows based on a given questions array
-function renderTable(questions) {
+// Apply search/topic/difficulty filters (excluding company filter)
+function applyFilters() {
+  const searchText = searchInput.value.toLowerCase();
+  const selectedTopic = topicFilter.value || null;
+  const selectedDiff = difficultyFilter.value || null;
+  
+  baseFiltered = questionsData.filter(q => {
+    const matchesSearch = q.title.toLowerCase().includes(searchText) ||
+                          q.topic.toLowerCase().includes(searchText) ||
+                          q.difficulty.toLowerCase().includes(searchText);
+    const matchesTopic = selectedTopic ? q.topic === selectedTopic : true;
+    const matchesDiff = selectedDiff ? q.difficulty === selectedDiff : true;
+    return matchesSearch && matchesTopic && matchesDiff;
+  });
+  
+  // Apply company filter if one is selected
+  filteredData = selectedCompany ? baseFiltered.filter(q => q.companies.includes(selectedCompany)) : baseFiltered;
+  
+  currentPage = 1;
+  renderTable();
+  updatePaginationInfo();
+  renderCompanies();
+}
+
+// Render the questions table
+function renderTable() {
   tableBody.innerHTML = "";
-  questions.forEach(q => {
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pageData = filteredData.slice(startIndex, endIndex);
+  
+  pageData.forEach(q => {
     const row = document.createElement("tr");
 
-    // Create star cell (using localStorage for solved state)
+    // Star cell (indicates solved state)
     const starCell = document.createElement("td");
     const starBtn = document.createElement("span");
     starBtn.innerHTML = solvedQuestions[q.id] ? "&#9733;" : "&#9734;";
     starBtn.classList.add("star");
-    if (!solvedQuestions[q.id]) {
-      starBtn.classList.add("unsolved");
-    }
+    if (!solvedQuestions[q.id]) starBtn.classList.add("unsolved");
     starBtn.addEventListener("click", () => {
       solvedQuestions[q.id] = !solvedQuestions[q.id];
       starBtn.innerHTML = solvedQuestions[q.id] ? "&#9733;" : "&#9734;";
@@ -140,11 +215,25 @@ function renderTable(questions) {
     const titleCell = document.createElement("td");
     titleCell.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
 
-    // Topic and Difficulty cells
+    // Topic cell (capitalize display)
     const topicCell = document.createElement("td");
-    topicCell.textContent = q.topic;
+    topicCell.textContent = capitalizeFirst(q.topic);
+
+    // Difficulty cell with label (capitalize display)
     const diffCell = document.createElement("td");
-    diffCell.textContent = q.difficulty;
+    diffCell.style.textAlign = "center";
+    const diffLabel = document.createElement("span");
+    diffLabel.className = "difficulty-label";
+    diffLabel.textContent = capitalizeFirst(q.difficulty);
+    const diffLower = q.difficulty.toLowerCase();
+    if (diffLower === "hard") {
+      diffLabel.style.backgroundColor = "#ffcccc"; // light red
+    } else if (diffLower === "medium") {
+      diffLabel.style.backgroundColor = "#ffccff"; // light magenta
+    } else if (diffLower === "easy") {
+      diffLabel.style.backgroundColor = "#cce5ff"; // light blue
+    }
+    diffCell.appendChild(diffLabel);
 
     row.appendChild(starCell);
     row.appendChild(titleCell);
@@ -153,42 +242,53 @@ function renderTable(questions) {
 
     tableBody.appendChild(row);
   });
+  
+  problemCount.textContent = `Showing ${filteredData.length} problem${filteredData.length !== 1 ? "s" : ""}`;
 }
 
-// Filter questions based on search input and dropdown filters
-function filterQuestions() {
-  const searchText = searchInput.value.toLowerCase();
-  const selectedTopic = topicFilter.value ? topicFilter.value : null;
-  const selectedDiff = difficultyFilter.value ? difficultyFilter.value : null;
+// Update pagination information
+function updatePaginationInfo() {
+  const totalPages = Math.max(Math.ceil(filteredData.length / pageSize), 1);
+  currentPageSpan.textContent = currentPage;
+  totalPagesSpan.textContent = totalPages;
   
-  let filtered = questionsData.filter(q => {
-    const matchesSearch =
-      q.title.toLowerCase().includes(searchText) ||
-      q.topic.toLowerCase().includes(searchText) ||
-      q.difficulty.toLowerCase().includes(searchText);
-    const matchesTopic = selectedTopic ? q.topic === selectedTopic : true;
-    const matchesDiff = selectedDiff ? q.difficulty === selectedDiff : true;
-    return matchesSearch && matchesTopic && matchesDiff;
-  });
-  
-  // If a company filter is active, further filter the questions
-  if (selectedCompany) {
-    filtered = filtered.filter(q => q.companies.includes(selectedCompany));
-  }
-  
-  renderTable(filtered);
+  prevPageBtn.disabled = currentPage <= 1;
+  nextPageBtn.disabled = currentPage >= totalPages;
 }
 
-// Event listeners for filters
-searchInput.addEventListener("input", filterQuestions);
-topicFilter.addEventListener("change", filterQuestions);
-difficultyFilter.addEventListener("change", filterQuestions);
+// Pagination event handlers
+function goToPage(newPage) {
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  if (newPage < 1 || newPage > totalPages) return;
+  currentPage = newPage;
+  renderTable();
+  updatePaginationInfo();
+}
 
-// Event listener for the company search input
+prevPageBtn.addEventListener("click", () => goToPage(currentPage - 1));
+nextPageBtn.addEventListener("click", () => goToPage(currentPage + 1));
+
+function updatePageSize(newSize) {
+  pageSize = newSize;
+  currentPage = 1;
+  renderTable();
+  updatePaginationInfo();
+}
+
+pageSizeSelect.addEventListener("change", (e) => {
+  updatePageSize(parseInt(e.target.value, 10));
+});
+
+// Filter event listeners
+searchInput.addEventListener("input", applyFilters);
+topicFilter.addEventListener("change", applyFilters);
+difficultyFilter.addEventListener("change", applyFilters);
+
+// Company search input event listener
 const companySearchInput = document.getElementById("companySearch");
 if (companySearchInput) {
   companySearchInput.addEventListener("input", renderCompanies);
 }
 
-// Load solved questions from localStorage on page load
+// Initial load
 loadSolvedQuestions();

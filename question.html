@@ -5,30 +5,57 @@
   <title>QuantGuide - Question Detail</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Optional: MathJax if you have LaTeX in your question content -->
+  <!-- MathJax for LaTeX rendering -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
   </script>
-  <script
-    type="text/javascript"
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-  ></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fafafa; }
-    .container { width: 90%; max-width: 800px; margin: 1rem auto; background: #fff; padding: 1rem; }
-    a { color: #2979ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    h1 { margin-bottom: 0.5rem; }
-    .metadata { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
-    .metadata div { margin-bottom: 0.2rem; }
-    details { margin: 1rem 0; }
-    summary { cursor: pointer; font-weight: bold; color: #007BFF; }
-    /* Styles for answer submission */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fafafa;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin: 1rem auto;
+      background: #fff;
+      padding: 1rem;
+    }
+    a {
+      color: #2979ff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+    .metadata {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    .metadata div {
+      margin-bottom: 0.2rem;
+    }
+    details {
+      margin: 1rem 0;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #007BFF;
+    }
+    /* Answer submission field styles */
     .answer-submit input[type="text"] {
       padding: 0.4rem;
       margin-right: 0.5rem;
-      width: 70%;
+      width: 50%;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -51,39 +78,30 @@
     <h1 id="questionTitle">Question Title</h1>
     <div class="metadata" id="metadata"></div>
     <hr>
-
     <h3>Task</h3>
     <div id="taskContent"></div>
-
-    <!-- We'll insert Hint, Solution, Answer details below -->
     <div id="extraContent"></div>
   </div>
-
   <script>
-    // Parse the ?id= from the URL
+    // Parse question id from URL
     const params = new URLSearchParams(window.location.search);
     const questionId = parseInt(params.get("id") || "0");
 
-    // Load the JSON
+    // Load question data
     fetch("questionsData.json")
       .then(res => res.json())
       .then(data => {
-        // Find the question with matching id
         const question = data.find(q => q.id === questionId);
         if (!question) {
           document.getElementById("questionTitle").textContent = "Question Not Found";
           return;
         }
-
         displayQuestion(question);
       })
       .catch(err => console.error("Error loading question data:", err));
 
     function displayQuestion(q) {
-      // Title
       document.getElementById("questionTitle").textContent = q.title;
-
-      // Metadata including tags
       const metaDiv = document.getElementById("metadata");
       metaDiv.innerHTML = `
         <div><strong>Topic:</strong> ${q.topic}</div>
@@ -93,11 +111,7 @@
         <div><strong>Last Edited:</strong> ${q.lastEditedAt} by ${q.lastEditedBy}</div>
         <div><strong>Tags:</strong> ${q.tags ? q.tags.join(", ") : "None"}</div>
       `;
-
-      // Task
       document.getElementById("taskContent").innerHTML = q.taskHTML;
-
-      // Extra (Hint, Solution, Answer)
       const extraDiv = document.getElementById("extraContent");
       let extraHTML = "";
       if (q.hintHTML) extraHTML += q.hintHTML;
@@ -105,31 +119,24 @@
       if (q.answerHTML) extraHTML += q.answerHTML;
       extraDiv.innerHTML = extraHTML;
 
-      // Re-render MathJax if present
       if (window.MathJax) {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }
-      
-      // Append answer submission field
       addAnswerSubmission(q);
     }
 
     function addAnswerSubmission(q) {
-      // Create container for submission
       const submissionDiv = document.createElement("div");
       submissionDiv.className = "answer-submit";
       submissionDiv.style.marginTop = "1rem";
       
-      // Create input field
       const inputField = document.createElement("input");
       inputField.type = "text";
       inputField.placeholder = "Enter your answer";
       
-      // Create submit button
       const submitBtn = document.createElement("button");
       submitBtn.textContent = "Submit";
       
-      // Create result notification
       const resultDiv = document.createElement("div");
       resultDiv.style.marginTop = "0.5rem";
       resultDiv.style.fontWeight = "bold";
@@ -137,12 +144,8 @@
       submissionDiv.appendChild(inputField);
       submissionDiv.appendChild(submitBtn);
       submissionDiv.appendChild(resultDiv);
-      
-      // Append the submissionDiv after extraContent
       document.getElementById("extraContent").appendChild(submissionDiv);
       
-      // Extract the correct answer from answerHTML.
-      // We assume the correct answer is inside the first <li> element.
       let correctAnswer = "";
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = q.answerHTML;
@@ -151,7 +154,7 @@
         correctAnswer = li.textContent.trim();
       }
       
-      submitBtn.addEventListener("click", () => {
+      function checkAnswer() {
         const userAnswer = inputField.value.trim();
         if (userAnswer === correctAnswer) {
           resultDiv.textContent = "Correct";
@@ -159,6 +162,16 @@
         } else {
           resultDiv.textContent = "False";
           resultDiv.style.color = "red";
+        }
+        setTimeout(() => {
+          resultDiv.textContent = "";
+        }, 3000);
+      }
+      
+      submitBtn.addEventListener("click", checkAnswer);
+      inputField.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          checkAnswer();
         }
       });
     }
