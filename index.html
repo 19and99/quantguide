@@ -2,229 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>QuantGuide - All Questions</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    /* Base Styles */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #fafafa;
-    }
-    .container {
-      margin: 1rem auto;
-      max-width: 1200px;
-      padding-right: 440px; /* leave room for fixed sidebar (now 500px wide) */
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    /* Main content table styles */
-    .main-content {
-      width: 100%;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      table-layout: fixed;
-    }
-    th, td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #ddd;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-      vertical-align: middle;
-    }
-    th {
-      background: #f9f9f9;
-      cursor: pointer;
-    }
-    /* Fixed column widths */
-    th#titleHeader { width: 45%; }
-    th#starHeader { width: 5%; }
-    th#topicHeader { width: 25%; position: relative; }
-    th#difficultyHeader { width: 25%; position: relative; text-align: center; }
-    /* Search Bar Row */
-    .search-row th {
-      border: none;
-      background: transparent;
-      padding: 0.25rem 0;
-      text-align: left;
-    }
-    .search-bar input {
-      width: 250px;
-      padding: 0.4rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .problem-count {
-      float: right;
-      font-size: 0.9rem;
-      margin-top: 0.2rem;
-    }
-    /* Link styling */
-    table a {
-      color: #2979ff;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-    table a:hover {
-      color: #1a5bb8;
-      text-decoration: none;
-    }
-    /* Star button */
-    .star {
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: gold;
-    }
-    .unsolved {
-      color: lightgray;
-    }
-    /* Sidebar (Company Filters) – now 2× wider */
-    .sidebar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 430px;
-      height: 100%;
-      background: #fff;
-      border-left: 1px solid #ddd;
-      padding: 1rem;
-      box-sizing: border-box;
-      overflow-y: auto;
-    }
-    .sidebar h3 {
-      margin-top: 0;
-    }
-    .sidebar input {
-      width: 100%;
-      padding: 0.4rem;
-      margin-bottom: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .companies span {
-      cursor: pointer;
-      display: inline-block;
-      margin: 0.25rem;
-      padding: 0.4rem 0.8rem;
-      background: #e0e0e0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    .companies span:hover {
-      background: #d0d0d0;
-    }
-    .companies span.selected {
-      background: #2979ff;
-      color: white;
-    }
-    /* Difficulty label styling */
-    .difficulty-label {
-      display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-weight: bold;
-      text-align: center;
-    }
-    /* Dropdown styles */
-    .dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #fff;
-      border: 1px solid #ccc;
-      width: 100%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
-    .dropdown-item {
-      padding: 0.5rem;
-      cursor: pointer;
-    }
-    .dropdown-item:hover {
-      background: #f2f2f2;
-    }
-    /* Arrow icon styling */
-    .arrow {
-      font-size: 0.8rem;
-      margin-left: 5px;
-    }
-  </style>
+  <title>QuantGuide</title>
+  <!-- Link to your CSS file -->
+  <link rel="stylesheet" href="index.css" />
 </head>
 <body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">QuantGuide</div>
+  </header>
+
+  <!-- Main container -->
   <div class="container">
+    <!-- Main content: table + pagination -->
     <div class="main-content">
-      <h1>QuantGuide Questions</h1>
-      <!-- Table with three header rows -->
-      <table>
-        <thead>
-          <!-- Row 1: Search Bar and Problem Count -->
-          <tr class="search-row">
-            <th colspan="4">
-              <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search questions...">
-                <span class="problem-count" id="problemCount">Showing 0 problems</span>
-              </div>
-            </th>
-          </tr>
-          <!-- Row 2: Column Headers -->
-          <tr class="column-headers">
-            <th id="titleHeader">Title</th>
-            <th id="starHeader">★</th>
-            <th id="topicHeader">
-              Topic <span class="arrow" id="topicArrow">&#9654;</span>
-              <div class="dropdown" id="topicDropdown" style="display:none;"></div>
-            </th>
-            <th id="difficultyHeader">
-              Difficulty <span class="arrow" id="difficultyArrow">&#9654;</span>
-              <div class="dropdown" id="difficultyDropdown" style="display:none;"></div>
-            </th>
-          </tr>
-          <!-- Row 3: Pagination -->
-          <tr class="pagination-row">
-            <th colspan="4">
-              <div class="pagination">
-                <div class="pagination-left">
-                  <button id="prevPage">&#8592;</button>
-                  <button id="nextPage">&#8594;</button>
-                  <span>
-                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-                  </span>
+      <!-- Table wrapper -->
+      <div class="table-container">
+        <!-- The table header row (Name, Topic, Difficulty) -->
+        <table>
+          <thead>
+            <tr>
+              <th class="name-col">Name</th>
+              <th class="topic-col">
+                Topic 
+                <span class="topic-arrow arrow">►</span>
+                <!-- Example dropdown (toggle visibility in JS) -->
+                <div class="dropdown topic-dropdown hidden" id="topicDropdown">
+                  <!-- Populated via JS with unique topics -->
                 </div>
-                <div class="pagination-right">
-                  <span>
-                    Questions per page:
-                    <select id="pageSize">
-                      <option value="25">25</option>
-                      <option value="50" selected>50</option>
-                      <option value="100">100</option>
-                    </select>
-                  </span>
+              </th>
+              <th class="difficulty-col">
+                Difficulty 
+                <span class="difficulty-arrow arrow">►</span>
+                <!-- Example dropdown (toggle visibility in JS) -->
+                <div class="dropdown difficulty-dropdown hidden" id="difficultyDropdown">
+                  <!-- Populated via JS with unique difficulties -->
                 </div>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody id="questionsTableBody">
-          <!-- Populated by script.js -->
-        </tbody>
-      </table>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="questions-tbody">
+            <!-- Populated via JavaScript -->
+          </tbody>
+        </table>
+
+        <!-- Search bar absolutely positioned in the top-right of the table container -->
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search..." />
+        </div>
+      </div>
+
+      <!-- Pagination row -->
+      <div class="pagination">
+        <div class="results-count">
+          Results: <span id="results-count">0</span>
+        </div>
+        <div class="page-controls">
+          <button id="prev-page">&lt;</button>
+          <span id="current-page">1</span> / <span id="total-pages">1</span>
+          <button id="next-page">&gt;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar for Companies filters -->
+    <div class="sidebar">
+      <h2>Companies</h2>
+      <!-- Company search -->
+      <div class="company-search">
+        <input type="text" id="company-search-input" placeholder="Search companies..." />
+      </div>
+      <!-- Company list -->
+      <ul id="companies-list">
+        <!-- Populated via JS -->
+      </ul>
+      <!-- Company pagination -->
+      <div class="company-pagination">
+        <button id="prev-company-page">&lt;</button>
+        <button id="next-company-page">&gt;</button>
+      </div>
     </div>
   </div>
-  <!-- Fixed Company Filters Sidebar -->
-  <div class="sidebar">
-    <h3>Companies</h3>
-    <input type="text" id="companySearch" placeholder="Search companies...">
-    <div class="companies" id="companiesSection">
-      <!-- Company buttons with counts will appear here -->
-    </div>
-  </div>
-  <script src="script.js"></script>
+
+  <!-- Link to your JS file -->
+  <script src="index.js"></script>
 </body>
 </html>
