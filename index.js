@@ -163,7 +163,7 @@ function renderTable() {
 
     // Name cell
     const nameTd = document.createElement("td");
-    nameTd.textContent = q.title;
+    nameTd.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
     tr.appendChild(nameTd);
 
     // Topic cell
