@@ -131,7 +131,7 @@ function renderTable() {
     const tr = document.createElement("tr");
 
     const nameTd = document.createElement("td");
-    nameTd.textContent = q.title;
+    nameTd.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
     tr.appendChild(nameTd);
 
     const topicTd = document.createElement("td");
