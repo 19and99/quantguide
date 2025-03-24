@@ -46,7 +46,7 @@ html, body {
   background-color: #fff;
   border: 1px solid #ddd;
   border-bottom: none;
-  border-radius: 4px;
+  border-radius: 10px;
   padding-bottom: 0;
 }
 
@@ -76,9 +76,10 @@ th, td {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0;  /* top, right, bottom, left */
   border-radius: 4px;
 }
+
 
 /* Arrow styling */
 .arrow {
@@ -104,7 +105,7 @@ tbody tr:nth-child(even) {
 .search-bar input {
   padding: 0.3rem 0.5rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 /* Dropdown menus for topic/difficulty */
@@ -114,7 +115,7 @@ tbody tr:nth-child(even) {
   left: 0;
   background-color: #fff;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius:8px;
   z-index: 999;
   padding: 0.5rem;
   min-width: 150px;
@@ -181,7 +182,7 @@ tbody tr:nth-child(even) {
   align-self: flex-start;
   box-sizing: border-box;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 20px;
 }
 
 /* Sidebar header */
@@ -197,7 +198,7 @@ tbody tr:nth-child(even) {
   width: 100%;
   padding: 0.4rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 /* Companies container: fixed height of 400px with scrolling */
