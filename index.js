@@ -14,9 +14,6 @@ const filters = {
   company: ""
 };
 
-// Companies sidebar pagination state (handled via scroll)
-let currentCompanyPage = 1;
-
 /* Star state helpers */
 function isStarred(id) {
   return localStorage.getItem(`starred-${id}`) === "true";
@@ -29,7 +26,6 @@ function toggleStar(id) {
 /******************************
  * Filtering & Rendering
  ******************************/
-// Applies all filters to allQuestions
 function applyFilters() {
   filteredQuestions = allQuestions.filter((q) => {
     const matchesSearch = q.title.toLowerCase().includes(filters.search);
@@ -46,7 +42,6 @@ function applyFilters() {
   });
 }
 
-// Call this after any filter update
 function updateAll() {
   applyFilters();
   currentPage = 1;
@@ -72,14 +67,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch((err) => console.error("Error loading questionsData.json:", err));
 
   // Search input for questions table
-  document
-    .getElementById("search-input")
-    .addEventListener("input", function () {
-      filters.search = this.value.toLowerCase().trim();
-      updateAll();
-    });
+  document.getElementById("search-input").addEventListener("input", function () {
+    filters.search = this.value.toLowerCase().trim();
+    updateAll();
+  });
 
-  // Page size dropdown
   document.getElementById("page-size").addEventListener("change", (e) => {
     pageSize = parseInt(e.target.value, 10);
     currentPage = 1;
@@ -87,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePagination();
   });
 
-  // Pagination controls for questions table
   document.getElementById("prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -103,32 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Company search input
-  document
-    .getElementById("company-search-input")
-    .addEventListener("input", function () {
-      currentCompanyPage = 1;
-      populateCompanySidebar();
-    });
-
-  // Company pagination controls (using scrolling)
-  document.getElementById("prev-company-page").addEventListener("click", () => {
-    if (currentCompanyPage > 1) {
-      currentCompanyPage--;
-      const container = document.getElementById("companies-container");
-      container.scrollTop = (currentCompanyPage - 1) * container.clientHeight;
-    }
-  });
-  document.getElementById("next-company-page").addEventListener("click", () => {
-    const container = document.getElementById("companies-container");
-    const totalCompanyPages = Math.ceil(container.scrollHeight / container.clientHeight);
-    if (currentCompanyPage < totalCompanyPages) {
-      currentCompanyPage++;
-      container.scrollTop = (currentCompanyPage - 1) * container.clientHeight;
-    }
+  // Company search input (simply re-render sidebar on input)
+  document.getElementById("company-search-input").addEventListener("input", function () {
+    populateCompanySidebar();
   });
 
-  // Topic header clickable area
   const topicHeader = document.getElementById("topic-header-click");
   topicHeader.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -137,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
     arrow.textContent = arrow.textContent === "►" ? "▼" : "►";
   });
 
-  // Difficulty header clickable area
   const difficultyHeader = document.getElementById("difficulty-header-click");
   difficultyHeader.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -161,17 +130,14 @@ function renderTable() {
   pageItems.forEach((q) => {
     const tr = document.createElement("tr");
 
-    // Name cell
     const nameTd = document.createElement("td");
-    nameTd.innerHTML = `<a href="question.html?id=${q.id}">${q.title}</a>`;
+    nameTd.textContent = q.title;
     tr.appendChild(nameTd);
 
-    // Topic cell
     const topicTd = document.createElement("td");
     topicTd.textContent = capitalize(q.topic);
     tr.appendChild(topicTd);
 
-    // Difficulty cell with star button
     const diffTd = document.createElement("td");
     diffTd.textContent = capitalize(q.difficulty);
 
@@ -195,7 +161,6 @@ function renderTable() {
     tbody.appendChild(tr);
   });
 
-  // Update the results count based on filtered questions
   document.getElementById("results-count").textContent = filteredQuestions.length;
 }
 
@@ -215,7 +180,6 @@ function populateTopicDropdown() {
   const topicDropdown = document.getElementById("topicDropdown");
   topicDropdown.innerHTML = "";
 
-  // "All" option resets topic filter
   const allDiv = document.createElement("div");
   allDiv.textContent = "All";
   allDiv.addEventListener("click", () => {
@@ -227,10 +191,7 @@ function populateTopicDropdown() {
   });
   topicDropdown.appendChild(allDiv);
 
-  // Unique topics
-  const uniqueTopics = [
-    ...new Set(allQuestions.map((q) => q.topic.toLowerCase()))
-  ];
+  const uniqueTopics = [...new Set(allQuestions.map((q) => q.topic.toLowerCase()))];
   uniqueTopics.forEach((topic) => {
     const div = document.createElement("div");
     div.textContent = capitalize(topic);
@@ -249,7 +210,6 @@ function populateDifficultyDropdown() {
   const difficultyDropdown = document.getElementById("difficultyDropdown");
   difficultyDropdown.innerHTML = "";
 
-  // "All" option resets difficulty filter
   const allDiv = document.createElement("div");
   allDiv.textContent = "All";
   allDiv.addEventListener("click", () => {
@@ -261,10 +221,7 @@ function populateDifficultyDropdown() {
   });
   difficultyDropdown.appendChild(allDiv);
 
-  // Unique difficulties
-  const uniqueDiffs = [
-    ...new Set(allQuestions.map((q) => q.difficulty.toLowerCase()))
-  ];
+  const uniqueDiffs = [...new Set(allQuestions.map((q) => q.difficulty.toLowerCase()))];
   uniqueDiffs.forEach((diff) => {
     const div = document.createElement("div");
     div.textContent = capitalize(diff);
@@ -285,31 +242,25 @@ function populateDifficultyDropdown() {
 function populateCompanySidebar() {
   const container = document.getElementById("companies-container");
   container.innerHTML = "";
+  
+  // Set container height to fixed 400px
+  container.style.height = "400px";
+  
+  const searchVal = document.getElementById("company-search-input").value.toLowerCase().trim();
 
-  const searchVal = document
-    .getElementById("company-search-input")
-    .value.toLowerCase()
-    .trim();
-
-  // Gather unique companies from allQuestions (ignoring current company filter)
   let companies = [];
   allQuestions.forEach((q) => {
     q.companies.forEach((c) => companies.push(c));
   });
-  companies = [...new Set(companies)].filter((c) =>
-    c.toLowerCase().includes(searchVal)
-  );
+  companies = [...new Set(companies)].filter((c) => c.toLowerCase().includes(searchVal));
   companies.sort();
 
-  // Render all company chips and update their counts based on current filters (except company)
   companies.forEach((company) => {
     const chip = document.createElement("div");
     chip.classList.add("company-chip");
     if (filters.company === company) {
       chip.classList.add("selected");
     }
-
-    // Count questions matching search, topic, and difficulty, that include this company.
     const count = allQuestions.filter((q) => {
       const matchesBase =
         (!filters.search || q.title.toLowerCase().includes(filters.search)) &&
@@ -317,22 +268,13 @@ function populateCompanySidebar() {
         (!filters.difficulty || q.difficulty.toLowerCase() === filters.difficulty);
       return matchesBase && q.companies.includes(company);
     }).length;
-
     chip.innerHTML = `<span>${company}</span><span>${count}</span>`;
     chip.addEventListener("click", () => {
-      // Toggle company filter
       filters.company = filters.company === company ? "" : company;
       updateAll();
     });
     container.appendChild(chip);
   });
-
-  // After rendering, compute total pages based on container's scroll height and set scrollTop accordingly.
-  const totalCompanyPages = Math.ceil(container.scrollHeight / container.clientHeight) || 1;
-  if (currentCompanyPage > totalCompanyPages) {
-    currentCompanyPage = totalCompanyPages;
-  }
-  container.scrollTop = (currentCompanyPage - 1) * container.clientHeight;
 }
 
 /******************************
