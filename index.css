@@ -1,238 +1,241 @@
 /* Reset and base */
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  html, body {
-    height: 100%;
-    font-family: Arial, sans-serif;
-    color: #333;
-    background-color: #f9f9f9;
-  }
-  
-  /* Header */
-  .header {
-    background-color: #fff;
-    border-bottom: 1px solid #ddd;
-    padding: 1rem;
-  }
-  .header-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  /* Main container: table + sidebar with margins and gap */
-  .main-container {
-    display: flex;
-    margin: 1rem;
-    gap: 1rem;
-    height: calc(100% - 66px - 2rem); /* subtract header height and margins */
-  }
-  
-  /* Table wrapper: contains scrollable table and pagination below */
-  .table-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem; /* space at the bottom of the table section */
-  }
-  
-  /* Table container: scrollable with border */
-  .table-container {
-    flex: 1;
-    position: relative;
-    overflow: auto;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-bottom: none; /* bottom border now belongs to pagination */
-    border-radius: 4px;
-    padding-bottom: 0; /* no extra padding since pagination is outside */
-  }
-  
-  /* The table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  thead {
-    background-color: #f0f0f0;
-    border-bottom: 2px solid #ddd;
-  }
-  th, td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-  }
-  .name-col {
-    width: 40%;
-  }
-  .topic-col, .difficulty-col {
-    width: 30%;
-    position: relative;
-  }
-  
-  /* Clickable area for column headers */
-  .clickable-area {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-  }
-  
-  /* Arrow styling */
-  .arrow {
-    font-size: 0.8rem;
-    margin-left: 0.3rem;
-    color: gray;
-  }
-  
-  /* Table body alternating row colors */
-  tbody tr:nth-child(odd) {
-    background-color: #fff;
-  }
-  tbody tr:nth-child(even) {
-    background-color: #f7f7f7;
-  }
-  
-  /* Search bar in table container */
-  .search-bar {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-  .search-bar input {
-    padding: 0.3rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  /* Dropdown menus for topic/difficulty */
-  .dropdown {
-    position: absolute;
-    top: 2.3rem;
-    left: 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    z-index: 999;
-    padding: 0.5rem;
-    min-width: 150px;
-  }
-  .dropdown.hidden {
-    display: none;
-  }
-  .dropdown div {
-    padding: 0.3rem 0;
-    cursor: pointer;
-  }
-  .dropdown div:hover {
-    background-color: #eee;
-  }
-  
-  /* Star button in difficulty cell */
-  .star-btn {
-    float: right;
-    cursor: pointer;
-    color: #ccc;
-    font-size: 1rem;
-    margin-left: 1rem;
-  }
-  .star-btn.solved {
-    color: gold;
-  }
-  
-  /* Pagination for questions table placed below the table */
-  .table-pagination {
-    width: 100%;
-    background-color: #fff;
-    border-top: 1px solid #ddd;  /* separation line */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-    margin-top: 0.5rem;
-  }
-  .results-count {
-    font-size: 0.9rem;
-    color: #555;
-  }
-  .page-size-select {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .page-controls button {
-    cursor: pointer;
-    padding: 0.3rem 0.6rem;
-    margin: 0 0.2rem;
-  }
-  .page-controls span {
-    margin: 0 0.5rem;
-  }
-  
-  /* Sidebar for companies */
-  .sidebar {
-    width: 420px; /* 40% wider than original 300px */
-    background-color: #fff;
-    padding: 1rem;
-    box-sizing: border-box;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-  
-  /* Sidebar header */
-  .sidebar h2 {
-    margin-bottom: 1rem;
-  }
-  
-  /* Company search in sidebar */
-  .company-search {
-    margin-bottom: 1rem;
-  }
-  .company-search input {
-    width: 100%;
-    padding: 0.4rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  /* Companies container: fixed height so that pagination works by rows */
-  .companies-container {
-    height: 320px; /* adjust as needed for desired number of rows */
-    overflow: hidden;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  /* Company chip styling */
-  .company-chip {
-    background-color: #f0f0f0;
-    border-radius: 15px;
-    padding: 0.5rem 0.75rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .company-chip:hover {
-    background-color: #e0e0e0;
-  }
-  .company-chip.selected {
-    background-color: #007bff;
-    color: #fff;
-  }
-  
-  /* Company pagination controls */
-  .company-pagination {
-    margin-top: 1rem;
-    text-align: center;
-  }
-  .company-pagination button {
-    cursor: pointer;
-    padding: 0.3rem 0.6rem;
-    margin: 0 0.3rem;
-  }
-  
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  color: #333;
+  background-color: #f9f9f9;
+}
+
+/* Header */
+.header {
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 1rem;
+}
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Main container: table + sidebar with margins and gap */
+.main-container {
+  display: flex;
+  margin: 1rem;
+  gap: 1rem;
+  height: calc(100% - 66px - 2rem); /* subtract header height and margins */
+}
+
+/* Table wrapper: contains scrollable table and pagination below */
+.table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem; /* space at the bottom of the table section */
+}
+
+/* Table container: scrollable with border */
+.table-container {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-bottom: none; /* bottom border now belongs to pagination */
+  border-radius: 4px;
+  padding-bottom: 0; /* no extra padding since pagination is outside */
+}
+
+/* The table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead {
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #ddd;
+}
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+.name-col {
+  width: 40%;
+}
+.topic-col, .difficulty-col {
+  width: 30%;
+  position: relative;
+}
+
+/* Clickable area for column headers */
+.clickable-area {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Arrow styling */
+.arrow {
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+  color: gray;
+}
+
+/* Table body alternating row colors */
+tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+tbody tr:nth-child(even) {
+  background-color: #f7f7f7;
+}
+
+/* Search bar in table container */
+.search-bar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+.search-bar input {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Dropdown menus for topic/difficulty */
+.dropdown {
+  position: absolute;
+  top: 2.3rem;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 999;
+  padding: 0.5rem;
+  min-width: 150px;
+}
+.dropdown.hidden {
+  display: none;
+}
+.dropdown div {
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+.dropdown div:hover {
+  background-color: #eee;
+}
+
+/* Star button in difficulty cell */
+.star-btn {
+  float: right;
+  cursor: pointer;
+  color: #ccc;
+  font-size: 1rem;
+  margin-left: 1rem;
+}
+.star-btn.solved {
+  color: gold;
+}
+
+/* Pagination for questions table placed below the table */
+.table-pagination {
+  width: 100%;
+  background-color: #fff;
+  border-top: 1px solid #ddd;  /* separation line */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+.results-count {
+  font-size: 0.9rem;
+  color: #555;
+}
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.page-controls button {
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  margin: 0 0.2rem;
+}
+.page-controls span {
+  margin: 0 0.5rem;
+}
+
+/* Sidebar for companies */
+.sidebar {
+  width: 420px; /* 40% wider than original 300px */
+  background-color: #ffffff;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;  /* Prevents sidebar from stretching full height */
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  /* Removed margin-bottom to let content size dictate height */
+}
+
+/* Sidebar header */
+.sidebar h2 {
+  margin-bottom: 1rem;
+}
+
+/* Company search in sidebar */
+.company-search {
+  margin-bottom: 1rem;
+}
+.company-search input {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Companies container: fixed height so that pagination works by rows */
+.companies-container {
+  height: 320px; /* adjust as needed for desired number of rows */
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Company chip styling */
+.company-chip {
+  background-color: #f0f0f0;
+  border-radius: 15px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.company-chip:hover {
+  background-color: #e0e0e0;
+}
+.company-chip.selected {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Company pagination controls */
+.company-pagination {
+  margin-top: 1rem;
+  margin-bottom: 4px;  /* 4px gap from sidebar bottom border */
+  text-align: center;
+}
+.company-pagination button {
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  margin: 0 0.3rem;
+}
