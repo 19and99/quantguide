@@ -71,6 +71,18 @@ th, td {
   position: relative;
 }
 
+/* Styling for question links in the table */
+table a {
+  text-decoration: none;
+  color: #1E90FF; /* Light blue color */
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 500;
+}
+
+table a:hover {
+  text-decoration: underline;
+}
+
 /* Clickable area for column headers */
 .clickable-area {
   display: inline-flex;
