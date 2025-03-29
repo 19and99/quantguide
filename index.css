@@ -143,6 +143,46 @@ tbody tr:nth-child(even) {
   color: gold;
 }
 
+/* Container for action buttons in the difficulty cell */
+.btn-container {
+  float: right;
+}
+
+/* Styling for solved/unsolved button */
+.solved-btn {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  background-color: #dc3545; /* default unsolved state */
+  color: #fff;
+}
+
+.solved-btn:focus {
+  outline: none;
+}
+
+/* When the problem is marked as solved, change background color */
+.solved-btn:active,
+.solved-btn.solved {
+  background-color: #28a745;
+}
+
+.clear-filters button {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.clear-filters button:hover {
+  background-color: #0056b3;
+}
+
+
 /* Pagination for questions table placed below the table */
 .table-pagination {
   width: 100%;

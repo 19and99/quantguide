@@ -11,7 +11,8 @@ const filters = {
   search: "",
   topic: "",
   difficulty: "",
-  company: ""
+  company: "",
+  solved: "" // "" (all), "solved", or "unsolved"
 };
 
 /* Star state helpers */
@@ -23,22 +24,28 @@ function toggleStar(id) {
   localStorage.setItem(`starred-${id}`, !current);
 }
 
+/* Solved state helpers */
+function isSolved(id) {
+  return localStorage.getItem(`solved-${id}`) === "true";
+}
+function toggleSolved(id) {
+  const current = isSolved(id);
+  localStorage.setItem(`solved-${id}`, !current);
+}
+
 /******************************
  * Filtering & Rendering
  ******************************/
 function applyFilters() {
   filteredQuestions = allQuestions.filter((q) => {
     const matchesSearch = q.title.toLowerCase().includes(filters.search);
-    const matchesTopic = filters.topic
-      ? q.topic.toLowerCase() === filters.topic
+    const matchesTopic = filters.topic ? q.topic.toLowerCase() === filters.topic : true;
+    const matchesDifficulty = filters.difficulty ? q.difficulty.toLowerCase() === filters.difficulty : true;
+    const matchesCompany = filters.company ? q.companies.includes(filters.company) : true;
+    const matchesSolved = filters.solved
+      ? (filters.solved === "solved" ? isSolved(q.id) : !isSolved(q.id))
       : true;
-    const matchesDifficulty = filters.difficulty
-      ? q.difficulty.toLowerCase() === filters.difficulty
-      : true;
-    const matchesCompany = filters.company
-      ? q.companies.includes(filters.company)
-      : true;
-    return matchesSearch && matchesTopic && matchesDifficulty && matchesCompany;
+    return matchesSearch && matchesTopic && matchesDifficulty && matchesCompany && matchesSolved;
   });
 }
 
@@ -48,18 +55,64 @@ function updateAll() {
   renderTable();
   updatePagination();
   populateCompanySidebar();
+  localStorage.setItem("filters", JSON.stringify(filters));
 }
 
 /******************************
  * Data Fetch & Initialization
  ******************************/
 document.addEventListener("DOMContentLoaded", () => {
+  // Restore filters from localStorage if available
+  const savedFilters = localStorage.getItem("filters");
+  if (savedFilters) {
+    Object.assign(filters, JSON.parse(savedFilters));
+  }
+
+// Update header titles for Topic and Difficulty based on saved filters
+  if (filters.topic) {
+    document.getElementById("topic-col-title").textContent = capitalize(filters.topic);
+  }
+  if (filters.difficulty) {
+    document.getElementById("difficulty-col-title").textContent = capitalize(filters.difficulty);
+  }
+
+  // Set the solved filter select element to the saved value and add event listener
+  const solvedFilterEl = document.getElementById("solved-filter");
+  if (solvedFilterEl) {
+    solvedFilterEl.value = filters.solved;
+    solvedFilterEl.addEventListener("change", (e) => {
+      filters.solved = e.target.value;
+      updateAll();
+    });
+  }
+
+  // Add event listener for "Clear Filters" button
+  const clearFiltersBtn = document.getElementById("clear-filters");
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", () => {
+      // Reset all filters
+      filters.search = "";
+      filters.topic = "";
+      filters.difficulty = "";
+      filters.company = "";
+      filters.solved = "";
+      // Clear input fields
+      document.getElementById("search-input").value = "";
+      document.getElementById("company-search-input").value = "";
+      if (solvedFilterEl) solvedFilterEl.value = "";
+      // Reset dropdown header titles
+      document.getElementById("topic-col-title").textContent = "Topic";
+      document.getElementById("difficulty-col-title").textContent = "Difficulty";
+      updateAll();
+    });
+  }
+
+
   fetch("questionsData.json")
     .then((res) => res.json())
     .then((data) => {
       allQuestions = data;
       updateAll();
-
       populateTopicDropdown();
       populateDifficultyDropdown();
       populateCompanySidebar();
@@ -141,6 +194,11 @@ function renderTable() {
     const diffTd = document.createElement("td");
     diffTd.textContent = capitalize(q.difficulty);
 
+    // Create a container for the action buttons (star & solved)
+    const btnContainer = document.createElement("span");
+    btnContainer.classList.add("btn-container");
+
+    // Star button remains unchanged
     const starSpan = document.createElement("span");
     starSpan.classList.add("star-btn");
     if (isStarred(q.id)) {
@@ -155,14 +213,30 @@ function renderTable() {
       starSpan.classList.toggle("solved", isStarred(q.id));
       starSpan.textContent = isStarred(q.id) ? "★" : "☆";
     });
-    diffTd.appendChild(starSpan);
-    tr.appendChild(diffTd);
 
+    // Revised Solved/Unsolved button using a styled button element
+    const solvedBtn = document.createElement("button");
+    solvedBtn.classList.add("solved-btn");
+    solvedBtn.textContent = isSolved(q.id) ? "Solved" : "Unsolved";
+    solvedBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSolved(q.id);
+      solvedBtn.textContent = isSolved(q.id) ? "Solved" : "Unsolved";
+      updateAll(); // refresh in case solved filter is active
+    });
+
+    // Append the star and solved buttons to the container
+    btnContainer.appendChild(starSpan);
+    btnContainer.appendChild(solvedBtn);
+    diffTd.appendChild(btnContainer);
+
+    tr.appendChild(diffTd);
     tbody.appendChild(tr);
   });
 
   document.getElementById("results-count").textContent = filteredQuestions.length;
 }
+
 
 /******************************
  * Update Pagination (Questions)
