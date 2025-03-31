@@ -167,19 +167,15 @@ tbody tr:nth-child(even) {
   border: none;
   border-radius: 4px;
   padding: 0.2rem 0.5rem;
-  background-color: #dc3545; /* default unsolved state */
+  background-color: #dc3545; /* Default: Unsolved (Red) */
   color: #fff;
 }
 
-.solved-btn:focus {
-  outline: none;
+/* Ensure class-based styling instead of :active */
+.solved-btn.solved {
+  background-color: #28a745; /* Solved (Green) */
 }
 
-/* When the problem is marked as solved, change background color */
-.solved-btn:active,
-.solved-btn.solved {
-  background-color: #28a745;
-}
 
 .clear-filters button {
   padding: 0.3rem 0.6rem;

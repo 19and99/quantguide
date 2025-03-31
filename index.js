@@ -38,7 +38,7 @@ function toggleSolved(id) {
  ******************************/
 function applyFilters() {
   filteredQuestions = allQuestions.filter((q) => {
-    const matchesSearch = q.title.toLowerCase().includes(filters.search);
+    const matchesSearch = q.title.toLowerCase().includes(filters.search) || (q.tags && q.tags.some(tag => tag.toLowerCase().includes(filters.search)));
     const matchesTopic = filters.topic ? q.topic.toLowerCase() === filters.topic : true;
     const matchesDifficulty = filters.difficulty ? q.difficulty.toLowerCase() === filters.difficulty : true;
     const matchesCompany = filters.company ? q.companies.includes(filters.company) : true;
@@ -218,10 +218,12 @@ function renderTable() {
     const solvedBtn = document.createElement("button");
     solvedBtn.classList.add("solved-btn");
     solvedBtn.textContent = isSolved(q.id) ? "Solved" : "Unsolved";
+    solvedBtn.classList.toggle("solved", isSolved(q.id)); 
     solvedBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleSolved(q.id);
       solvedBtn.textContent = isSolved(q.id) ? "Solved" : "Unsolved";
+      // solvedBtn.classList.toggle("solved", isSolved(q.id)); 
       updateAll(); // refresh in case solved filter is active
     });
 
